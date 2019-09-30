@@ -21,7 +21,6 @@ public class SkystoneTeleOp extends LinearOpMode {
     //private CRServo motorLatchingAssistant;
 
     //Declare Servos
-    //private Servo armServo;
 
     //Declare Sensors
     //DigitalChannel latchingTouchSensorDown;//Sensor to to test if motor has reached lower limit
@@ -53,7 +52,8 @@ public class SkystoneTeleOp extends LinearOpMode {
         //extendingArmMotor.setDirection(DcMotor.Direction.FORWARD);
 
         //Configure Servos
-        //armServo = hardwareMap.servo.get("motorArm");
+
+
         waitForStart();
 
         //INSERT CODE HERE
