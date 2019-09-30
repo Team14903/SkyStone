@@ -21,14 +21,19 @@ public class SkystoneTeleOp extends LinearOpMode {
     //private CRServo motorLatchingAssistant;
 
     //Declare Servos
+<<<<<<< HEAD
+=======
+    private Servo TerrenceTheServo;
+>>>>>>> f2dfa67d775bf2a4cff7198f0452427e9574db32
 
     //Declare Sensors
     //DigitalChannel latchingTouchSensorDown;//Sensor to to test if motor has reached lower limit
     //DigitalChannel latchingTouchSensorUp; //Sensor to test if motor has reached upper limit
 
     //Variables
-    //private static double driveMotorPower; // Power for drive motors
-
+    private static double driveMotorPower; // Power for drive motors
+    private static boolean OldTerrence =false;
+    private static boolean NewTerrence =false;
 
     @Override
     public void runOpMode() throws InterruptedException{
@@ -52,8 +57,12 @@ public class SkystoneTeleOp extends LinearOpMode {
         //extendingArmMotor.setDirection(DcMotor.Direction.FORWARD);
 
         //Configure Servos
+<<<<<<< HEAD
 
 
+=======
+        TerrenceTheServo = hardwareMap.servo.get("TerrenceTheServo");
+>>>>>>> f2dfa67d775bf2a4cff7198f0452427e9574db32
         waitForStart();
 
         //INSERT CODE HERE
@@ -80,6 +89,12 @@ public class SkystoneTeleOp extends LinearOpMode {
             motorBack.setPower(-gamepad1.right_stick_x);
             motorLeft.setPower(-gamepad1.right_stick_y);
             motorRight.setPower(-gamepad1.right_stick_y);
+
+            //Terrence servo control
+            if(!OldTerrence&&NewTerrence){
+                if TerrenceTheServo.
+            }
+
             telemetry.update();
         }
         idle();
