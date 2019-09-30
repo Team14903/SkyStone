@@ -14,7 +14,7 @@ import com.qualcomm.robotcore.util.Range;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-//@Disabled
+@Disabled
 @TeleOp(name= "TeleOp Basic Program")
 public class RoverRuckusTeleOp extends LinearOpMode {
 

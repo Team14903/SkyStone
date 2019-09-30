@@ -33,6 +33,7 @@ import android.util.Log;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
@@ -57,7 +58,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
  */
 
 @Autonomous(name="Autonomous No Hanging Depot OpMode", group="Linear Opmode")
-//@Disabled
+@Disabled
 public class AutonomouDepotsProgram extends LinearOpMode {
     //OldTensorFlowObjectDetection Tensor = new OldTensorFlowObjectDetection();
     private String Picture;
