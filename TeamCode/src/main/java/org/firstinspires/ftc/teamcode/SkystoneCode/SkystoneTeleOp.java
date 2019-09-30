@@ -21,10 +21,9 @@ public class SkystoneTeleOp extends LinearOpMode {
     //private CRServo motorLatchingAssistant;
 
     //Declare Servos
-<<<<<<< HEAD
-=======
     private Servo TerrenceTheServo;
->>>>>>> f2dfa67d775bf2a4cff7198f0452427e9574db32
+    private Servo Larm;
+    private Servo Rarm;
 
     //Declare Sensors
     //DigitalChannel latchingTouchSensorDown;//Sensor to to test if motor has reached lower limit
@@ -34,6 +33,10 @@ public class SkystoneTeleOp extends LinearOpMode {
     private static double driveMotorPower; // Power for drive motors
     private static boolean OldTerrence =false;
     private static boolean NewTerrence =false;
+    private static boolean OldLarm =false;
+    private static boolean NewLarm =false;
+    private static boolean OldRarm =false;
+    private static boolean NewRarm =false;
 
     @Override
     public void runOpMode() throws InterruptedException{
@@ -57,12 +60,10 @@ public class SkystoneTeleOp extends LinearOpMode {
         //extendingArmMotor.setDirection(DcMotor.Direction.FORWARD);
 
         //Configure Servos
-<<<<<<< HEAD
-
-
-=======
         TerrenceTheServo = hardwareMap.servo.get("TerrenceTheServo");
->>>>>>> f2dfa67d775bf2a4cff7198f0452427e9574db32
+        Larm = hardwareMap.servo.get("Larm");
+        Rarm = hardwareMap.servo.get("Rarm");
+
         waitForStart();
 
         //INSERT CODE HERE
@@ -91,9 +92,30 @@ public class SkystoneTeleOp extends LinearOpMode {
             motorRight.setPower(-gamepad1.right_stick_y);
 
             //Terrence servo control
+            NewTerrence=gamepad1.a;
             if(!OldTerrence&&NewTerrence){
-                if TerrenceTheServo.
+                if (TerrenceTheServo.getPosition()==0){
+                    TerrenceTheServo.setPosition(1);
+                } else {
+                    TerrenceTheServo.setPosition(0);
+                }
             }
+            OldTerrence=NewTerrence;
+
+            //Right And Left arm servo
+            NewRarm=gamepad1.x;
+            if(!OldRarm&&NewRarm){
+                if (Rarm.getPosition()==1){
+                    Rarm.setPosition(0);
+                    Larm.setPosition(1);
+
+                } else {
+                    Rarm.setPosition(1);
+                    Larm.setPosition(0);
+
+                }
+            }
+            OldRarm=NewRarm;
 
             telemetry.update();
         }
