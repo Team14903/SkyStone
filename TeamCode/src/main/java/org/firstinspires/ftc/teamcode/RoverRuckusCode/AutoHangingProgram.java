@@ -78,14 +78,19 @@ public class AutoHangingProgram extends LinearOpMode{
 
         // Initialize Gyro
         BNO055IMU.Parameters parametersGyro = new BNO055IMU.Parameters();
-        parametersGyro.angleUnit       = BNO055IMU.AngleUnit.DEGREES;
-        parametersGyro.accelUnit       = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        parametersGyro.loggingEnabled  =false;
-        parametersGyro.mode            =BNO055IMU.SensorMode.IMU;
-        parametersGyro.loggingTag      ="IMU";
-        imu                        =hardwareMap.get(BNO055IMU.class, "imu name");
+        parametersGyro.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        parametersGyro.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parametersGyro.loggingEnabled = false;
+        parametersGyro.mode = BNO055IMU.SensorMode.IMU;
+        parametersGyro.loggingTag = "IMU";
+        imu = hardwareMap.get(BNO055IMU.class, "imu name");
+        //Todo: find if initializing the code will be more accurate here or right before the code is begun
         imu.initialize(parametersGyro);
-        float firstGyroAngle = imu.getAngularOrientation(AxesReference.INTRINSIC,AxesOrder.ZXY, AngleUnit.DEGREES).firstAngle;
+        float firstGyroAngle = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZXY, AngleUnit.DEGREES).firstAngle;
+        while (!isStopRequested() && !imu.isGyroCalibrated()) {
+            sleep(50);
+            idle();
+        }
 
         //vision init
         telemetry.addData("Version:",version);
