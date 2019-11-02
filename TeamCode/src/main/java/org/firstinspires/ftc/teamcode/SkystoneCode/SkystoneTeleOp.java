@@ -22,33 +22,27 @@ public class SkystoneTeleOp extends LinearOpMode {
     private DcMotor linearslideLeft;
     private CRServo motorLatchingAssistant;
     private CRServo extendingArmMotor;
-    Float LFspeed;
-    Float RFspeed;
-    Float LBspeed;
-    Float RBspeed;
+
 
 
 
     //Declare Servos
     private Servo TerrenceTheServo;
     private Servo NerrenceTheServo;
-    private Servo Larm;
-    private Servo Rarm;
+    private Servo LeftServoArm;
+    private Servo RightServoArm;
 
     //Declare Sensors
     DigitalChannel latchingTouchSensorDown;//Sensor to to test if motor has reached lower limit
     DigitalChannel latchingTouchSensorUp; //Sensor to test if motor has reached upper limit
 
     //Variables
-    private static double driveMotorPower; // Power for drive motors
     private static boolean OldTerrence =false;
     private static boolean NewTerrence =false;
     private static boolean OldLarm =false;
     private static boolean NewLarm =false;
     private static boolean OldRarm =false;
     private static boolean NewRarm =false;
-    private static double xPosition;
-    private static double yPosition;
     private static double linearSlidePower = 50; //Power for linear slide motors
 
     @Override
@@ -86,8 +80,8 @@ public class SkystoneTeleOp extends LinearOpMode {
         //Configure Servos
        TerrenceTheServo = hardwareMap.servo.get("TerrenceTheServo");
         NerrenceTheServo = hardwareMap.servo.get("NerrenceTheServo");
-        Larm = hardwareMap.servo.get("Larm");
-        Rarm = hardwareMap.servo.get("Rarm");
+        LeftServoArm = hardwareMap.servo.get("Larm");
+        RightServoArm = hardwareMap.servo.get("Rarm");
 
         waitForStart();
 
@@ -99,23 +93,19 @@ public class SkystoneTeleOp extends LinearOpMode {
             motorFrontRight.setPower(gamepad1.right_trigger-gamepad1.left_trigger);
             motorBackLeft.setPower(gamepad1.left_trigger-gamepad1.right_trigger);
 
+            //Mover robot in all directions in a straight line
+            motorFrontLeft.setPower(Range.clip(gamepad1.left_stick_y - gamepad1.left_stick_x,-1, 1));
+            motorFrontRight.setPower(Range.clip(gamepad1.left_stick_y + gamepad1.left_stick_x,-1, 1));
+            motorBackLeft.setPower(Range.clip(gamepad1.right_stick_y + gamepad1.left_stick_x,-1, 1));
+            motorBackRight.setPower(Range.clip(gamepad1.right_stick_y - gamepad1.left_stick_x, -1, 1));
+
             //Linear Slide Motors
-            linearslideLeft.setPower(gamepad2.left_stick_y);
-            linearslideRight.setPower(-gamepad2.left_stick_y);
-
-
-
-
-            xPosition = gamepad1.right_stick_x;
-            yPosition = gamepad1.right_stick_y;
-
-            motorFrontLeft.setPower(-gamepad1.right_stick_y-gamepad1.right_stick_x);
-            motorFrontRight.setPower(-gamepad1.right_stick_y+gamepad1.right_stick_x);
-            motorBackLeft.setPower(-gamepad1.right_stick_y-gamepad1.right_stick_x);
-            motorBackRight.setPower(-gamepad1.right_stick_y+gamepad1.right_stick_x);
-
-
-//Terrence servo control
+            if(gamepad2.left_stick_y<0&&!latchingTouchSensorDown.getState()) {
+                linearslideLeft.setPower(gamepad2.left_stick_y);
+            }else if{gamepad2.left_stick_y>0){
+                linearslideLeft.setPower(gamepad2.left_stick_y);
+            }
+            //Terrence servo control
             NewTerrence=gamepad1.a;
             if(!OldTerrence&&NewTerrence){
                 if (TerrenceTheServo.getPosition()==0){
@@ -131,58 +121,22 @@ public class SkystoneTeleOp extends LinearOpMode {
             //Right And Left arm servo
             NewRarm=gamepad1.x;
             if(!OldRarm&&NewRarm){
-                if (Rarm.getPosition()==1){
-                    Rarm.setPosition(0);
-                    Larm.setPosition(1);
+                if (RightServoArm.getPosition()==1){
+                    RightServoArm.setPosition(0);
+                    LeftServoArm.setPosition(1);
 
                 } else {
-                    Rarm.setPosition(1);
-                    Larm.setPosition(0);
+                    RightServoArm.setPosition(1);
+                    LeftServoArm.setPosition(0);
 
                 }
             }
             OldRarm=NewRarm;
 
-            if(gamepad2.left_bumper){
-                extendingArmMotor.setPower(-linearSlidePower);
-
-            } else if(gamepad2.right_bumper){
-                extendingArmMotor.setPower(linearSlidePower);
-            } else {
-                extendingArmMotor.setPower(0);
-            }
-            if(gamepad1.dpad_up){
-                motorLatchingAssistant.setPower(linearSlidePower);
-
-            } else if(gamepad1.dpad_down){
-                motorLatchingAssistant.setPower(-linearSlidePower);
-
-            } else {
-                motorLatchingAssistant.setPower(0);
-            }
-
             telemetry.update();
         }
-        LFspeed = gamepad1.left_stick_y - gamepad1.left_stick_x;
-        RFspeed = gamepad1.left_stick_y + gamepad1.left_stick_x;
-        LBspeed = gamepad1.right_stick_y + gamepad1.left_stick_x;
-        RBspeed = gamepad1.right_stick_y - gamepad1.left_stick_x;
-        (Range.clipgamepad1.left_stick_y - gamepad1.left_stick_x;
-        (Range.clip gamepad1.left_stick_y + gamepad1.left_stick_x;
-        (Range.clipgamepad1.right_stick_y + gamepad1.left_stick_x;
-        (Range.clipgamepad1.right_stick_y - gamepad1.left_stick_x;
-        //driveMotorPower = -gamepad1.right_stick_y;
 
-            //LFspeed.setPower(Range.clip((driveMotorPower + turningPower), -1, 1));
-            //RFspeed.setPower(Range.clip(-(driveMotorPower - turningPower), -1, 1));
-            //LBspeed.setPower(Range.clip((driveMotorPower + turningPower), -1, 1));
-            //RBspeed.setPower(Range.clip(-(driveMotorPower - turningPower), -1, 1));
-        //} else {
-            //LFspeed.setPower(Range.clip((driveMotorPower - turningPower), -1, 1));
-            //RFspeed.setPower(Range.clip(-(driveMotorPower + turningPower), -1, 1));
-            //LBspeed.setPower(Range.clip((driveMotorPower - turningPower), -1, 1));
-            //RBspeed.setPower(Range.clip(-(driveMotorPower + turningPower), -1, 1));
-        //}
+
 
         idle();
 
