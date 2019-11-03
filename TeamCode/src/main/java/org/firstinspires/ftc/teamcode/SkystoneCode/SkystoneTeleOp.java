@@ -102,7 +102,7 @@ public class SkystoneTeleOp extends LinearOpMode {
             //Linear Slide Motors
             if(gamepad2.left_stick_y<0&&!latchingTouchSensorDown.getState()) {
                 linearslideLeft.setPower(gamepad2.left_stick_y);
-            }else if{gamepad2.left_stick_y>0){
+            }else if (gamepad2.left_stick_y>0){
                 linearslideLeft.setPower(gamepad2.left_stick_y);
             }
             //Terrence servo control
@@ -124,11 +124,9 @@ public class SkystoneTeleOp extends LinearOpMode {
                 if (RightServoArm.getPosition()==1){
                     RightServoArm.setPosition(0);
                     LeftServoArm.setPosition(1);
-
                 } else {
                     RightServoArm.setPosition(1);
                     LeftServoArm.setPosition(0);
-
                 }
             }
             OldRarm=NewRarm;
