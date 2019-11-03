@@ -41,6 +41,8 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode{
     //Declare Sensors
     DigitalChannel latchingTouchSensorDown;//Sensor to to test if motor has reached lower limit
     DigitalChannel latchingTouchSensorUp; //Sensor to test if motor has reached upper limit
+    private Servo TerrenceTheServo;
+    private Servo NerrenceTheServo;
 
     //Variables
     private static double driveMotorPower; // Power for drive motors
@@ -66,6 +68,8 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode{
         latchingTouchSensorUp = hardwareMap.get(DigitalChannel.class, "latchingTouchSensorUp");
         latchingTouchSensorUp.setMode(DigitalChannel.Mode.INPUT);
         latchingTouchSensorDown.setMode(DigitalChannel.Mode.INPUT);
+        TerrenceTheServo = hardwareMap.servo.get("TerrenceTheServo");
+        NerrenceTheServo = hardwareMap.servo.get("NerrenceTheServo");
 
 
         //Configure motors to Expansion Hub
@@ -75,17 +79,9 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode{
         motorBackLeft = hardwareMap.dcMotor.get("motorBackLeft");
 
         //Set drive motors to opposite directions(is reversable if needed) and set latching motor to forward
-        motorLeft.setDirection(DcMotor.Direction.FORWARD);
-        motorRight.setDirection(DcMotor.Direction.FORWARD);
-        motorLatching.setDirection(DcMotor.Direction.FORWARD);
 
         //Configure Servos
         armServo = hardwareMap.servo.get("motorArm");
-
-        // Initialize motors
-        motorLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
 
         // Initialize Gyro
         BNO055IMU.Parameters parametersGyro = new BNO055IMU.Parameters();
@@ -110,37 +106,55 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode{
         waitForStart();
         while (opModeIsActive()) {
 
-
-
+            DriveInStraightLine(1,1.06,70);
+            TerrenceTheServo.setPosition(1);
+            NerrenceTheServo.setPosition(1);
+            DriveInStraightLine(-1,1,0);
+            TerrenceTheServo.setPosition(0);
+            NerrenceTheServo.setPosition(0);
+            DriveInStraightLine(1, 1.46,270);
 
 
 
 
             Thread.sleep(500);
-            telemetry.addData("Right Wheel Encoder", motorRight.getCurrentPosition());
+            telemetry.addData("Right Wheel Encoder", 0 );
             telemetry.update();
             requestOpModeStop();
 
         }
     }
     // This is a method to make code easier to read, see above
-    public void DriveInStraightLine(double Power,int distance,double angle, boolean stop) throws InterruptedException {
-        accelerationRobot = Math.sqrt(Math.pow(imu.getAcceleration().xAccel,2)+Math.pow(imu.getAcceleration().yAccel,2)Math.pow(imu.getAcceleration().zAccel,2));
+    public void DriveInStraightLine(double Power,double distance,double angle) throws InterruptedException {
+        double overallAccelerationRobot = 0;
+        int numberOfTimesRun=0;
         xLeftStick = Math.cos(angle);
         yLeftStick = Math.sin(angle);
         DistanceRobot =0;
         long overallTime;
         long initialTime =time.getTime();
-        while (DistanceRobot<distance) {
-            overallTime = time.getTime()-initialTime;
-            accelerationRobot = Math.sqrt(Math.pow(imu.getAcceleration().xAccel,2)+Math.pow(imu.getAcceleration().yAccel,2)Math.pow(imu.getAcceleration().zAccel,2));
-            DistanceRobot = 
-            motorFrontLeft.setPower(Range.clip(yLeftStick - xLeftStick, -1, 1));
-            motorFrontRight.setPower(Range.clip(yLeftStick + xLeftStick, -1, 1));
-            motorBackLeft.setPower(Range.clip(yLeftStick + xLeftStick, -1, 1));
-            motorBackRight.setPower(Range.clip(yLeftStick - xLeftStick, -1, 1));
-        }
+        while (DistanceRobot<distance && !isStopRequested()) {
+            motorFrontLeft.setPower(Range.clip(yLeftStick - xLeftStick, -1, 1)*Power);
+            motorFrontRight.setPower(Range.clip(yLeftStick + xLeftStick, -1, 1)*Power);
+            motorBackLeft.setPower(Range.clip(yLeftStick + xLeftStick, -1, 1)*Power);
+            motorBackRight.setPower(Range.clip(yLeftStick - xLeftStick, -1, 1)*Power);
 
+            overallTime = time.getTime()-initialTime;
+            accelerationRobot = Math.sqrt(Math.pow(imu.getAcceleration().xAccel,2) + Math.pow(imu.getAcceleration().yAccel,2) + Math.pow(imu.getAcceleration().zAccel,2));
+            overallAccelerationRobot += accelerationRobot;
+            numberOfTimesRun +=1;
+            DistanceRobot = (overallAccelerationRobot/numberOfTimesRun)*Math.pow(overallTime,2)/2;
+            telemetry.addData("Robot Distance", DistanceRobot);
+            telemetry.update();
+
+        }
+        telemetry.update();
+        //Stops motors
+
+        motorFrontLeft.setPower(0);
+        motorFrontRight.setPower(0);
+        motorBackLeft.setPower(0);
+        motorBackRight.setPower(0);
 
     }
 
@@ -152,6 +166,10 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode{
 
 
 
+
+
+
+/*
 
 
     public void DriveFwdDistance(double Power,int distance,boolean stop) throws InterruptedException {
@@ -242,10 +260,8 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode{
         motorLeft.setPower(0);
         motorRight.setPower(0);
     }
-
+*/
     public void TurnGyro (float degrees, float precision, double regurlarPower, float relativeToStart) {
-        motorLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         //Get the gyro reading from the IMU
         float gyroReading = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZXY, AngleUnit.DEGREES).firstAngle;
         //Adding previous value of the gyro to the target to find end position
@@ -276,8 +292,10 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode{
         int counter=0;
         while(Math.abs(totalDegrees - gyroReading) > precision&&opModeIsActive()) {
             //turn the motors
-            motorLeft.setPower(left*regurlarPower);
-            motorRight.setPower(right*regurlarPower);
+            motorBackLeft.setPower(left*regurlarPower);
+            motorFrontLeft.setPower(left*regurlarPower);
+            motorBackRight.setPower(right*regurlarPower);
+            motorFrontRight.setPower(right*regurlarPower);
             telemetry.addData("Gyro angle",(totalDegrees-gyroReading));
             telemetry.update();
             //Update Gyro position
@@ -285,33 +303,13 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode{
             gyroReading = gyroReading < 0 ? 360 + gyroReading:gyroReading;
             Log.i(counter++ + ". CurrentAngle",String.valueOf(gyroReading));
         }
-        motorRight.setPower(0);
-        motorLeft.setPower(0);
+        motorFrontLeft.setPower(0);
+        motorFrontRight.setPower(0);
+        motorBackLeft.setPower(0);
+        motorBackRight.setPower(0);
         Log.i("Final Angle",String.valueOf(gyroReading));
     }
-    public void preciseTurn(double angle, double power){
-        motorLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        double wheelDiameterInch = 3.54;
-        double axelLengthInch = 13;
-        double differenceInDistance = (Math.abs(angle) * (axelLengthInch/wheelDiameterInch))*(288/360);
-        int    motorLeftEncoder= motorLeft.getCurrentPosition();
-        int    motorRightEncoder= motorRight.getCurrentPosition();
-        double motorLeftTarget = motorLeftEncoder - differenceInDistance;
-        double motorRightTarget = motorRightEncoder + differenceInDistance;
-        double precision = 0.3;
-        motorLeft.setTargetPosition((int)Math.round(motorLeftTarget));
-        motorRight.setTargetPosition((int)Math.round(motorRightTarget));
-        if(angle>=0){
-            motorLeft.setPower(power);
-            motorRight.setPower(power);
-        }else {
-            motorLeft.setPower(-power);
-            motorRight.setPower(-power);
-        }
 
-
-    }
     public void goldFinder(){
         //Senses Gold
         //vision.init();// enables the camera overlay. this will take a couple of seconds
@@ -334,11 +332,5 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode{
 
         //telemetry.addData("goldPosition was", String.valueOf (goldPosition));// giving feedback
         telemetry.update();
-    }
-
-    public void DriveAccFwdDcc(int distanceAccDcc,int cruisingDistance, double initialAndFinalPower, double cruisingPower) throws InterruptedException {
-
-        DriveFwdAccDcc(initialAndFinalPower, cruisingPower,distanceAccDcc);
-        DriveFwdDistance(cruisingPower,cruisingDistance,true);
     }
 }
