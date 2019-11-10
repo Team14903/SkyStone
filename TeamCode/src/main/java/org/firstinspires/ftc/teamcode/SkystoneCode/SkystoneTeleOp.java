@@ -18,10 +18,9 @@ public class SkystoneTeleOp extends LinearOpMode {
     private DcMotor motorFrontLeft;
     private DcMotor motorBackRight;
     private DcMotor motorBackLeft;
-    private DcMotor linearslideRight;
-    private DcMotor linearslideLeft;
-    private CRServo motorLatchingAssistant;
-    private CRServo extendingArmMotor;
+    private CRServo linearslideRight;
+    private CRServo linearslideLeft;
+
 
 
 
@@ -58,8 +57,8 @@ public class SkystoneTeleOp extends LinearOpMode {
         motorFrontLeft = hardwareMap.dcMotor.get("motorFrontLeft");
         motorBackRight = hardwareMap.dcMotor.get("motorBackRight");
         motorBackLeft = hardwareMap.dcMotor.get("motorBackLeft");
-        linearslideLeft = hardwareMap.dcMotor.get("linearslideLeft");
-        linearslideRight = hardwareMap.dcMotor.get("linearslideRight");
+        linearslideLeft = hardwareMap.crservo.get("linearslideLeft");
+        linearslideRight = hardwareMap.crservo.get("linearslideRight");
 
         //Value positions for servos
         final double armRetractedPosition = 0.0;
@@ -71,10 +70,6 @@ public class SkystoneTeleOp extends LinearOpMode {
         motorFrontLeft.setDirection(DcMotor.Direction.REVERSE);
         motorBackRight.setDirection(DcMotor.Direction.REVERSE);
         motorBackLeft.setDirection(DcMotor.Direction.FORWARD);
-        //extendingArmMotor.setDirection(DcMotor.Direction.FORWARD);
-
-        //configuring Linear Slide Motors
-        extendingArmMotor = hardwareMap.crservo.get("extendingArmMotor");
 
 
         //Configure Servos
@@ -102,8 +97,10 @@ public class SkystoneTeleOp extends LinearOpMode {
             //Linear Slide Motors&&!latchingTouchSensorDown.getState()
             if(gamepad2.left_stick_y<0) {
                 linearslideLeft.setPower(gamepad2.left_stick_y);
-            }else if (gamepad2.left_stick_y>0){
+            }else if (gamepad2.left_stick_y>0) {
                 linearslideLeft.setPower(gamepad2.left_stick_y);
+            }else {
+                linearslideLeft.setPower(0);
             }
             //Terrence servo control
             NewTerrence=gamepad1.a;
