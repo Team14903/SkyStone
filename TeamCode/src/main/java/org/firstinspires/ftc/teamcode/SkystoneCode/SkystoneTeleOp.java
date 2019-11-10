@@ -33,8 +33,8 @@ public class SkystoneTeleOp extends LinearOpMode {
     private Servo RightServoArm;
 
     //Declare Sensors
-    DigitalChannel latchingTouchSensorDown;//Sensor to to test if motor has reached lower limit
-    DigitalChannel latchingTouchSensorUp; //Sensor to test if motor has reached upper limit
+    //DigitalChannel latchingTouchSensorDown;//Sensor to to test if motor has reached lower limit
+    //DigitalChannel latchingTouchSensorUp; //Sensor to test if motor has reached upper limit
 
     //Variables
     private static boolean OldTerrence =false;
@@ -49,8 +49,8 @@ public class SkystoneTeleOp extends LinearOpMode {
     public void runOpMode() throws InterruptedException{
 
         //Configure Sensors
-        latchingTouchSensorDown = hardwareMap.get(DigitalChannel.class, "latchingTouchSensorDown");
-        latchingTouchSensorUp.setMode(DigitalChannel.Mode.INPUT);
+        //latchingTouchSensorDown = hardwareMap.get(DigitalChannel.class, "latchingTouchSensorDown");
+        //latchingTouchSensorUp.setMode(DigitalChannel.Mode.INPUT);
 
 
         //Configure motors to Expansion Hub
@@ -99,8 +99,8 @@ public class SkystoneTeleOp extends LinearOpMode {
             motorBackLeft.setPower(Range.clip(gamepad1.right_stick_y + gamepad1.left_stick_x,-1, 1));
             motorBackRight.setPower(Range.clip(gamepad1.right_stick_y - gamepad1.left_stick_x, -1, 1));
 
-            //Linear Slide Motors
-            if(gamepad2.left_stick_y<0&&!latchingTouchSensorDown.getState()) {
+            //Linear Slide Motors&&!latchingTouchSensorDown.getState()
+            if(gamepad2.left_stick_y<0) {
                 linearslideLeft.setPower(gamepad2.left_stick_y);
             }else if (gamepad2.left_stick_y>0){
                 linearslideLeft.setPower(gamepad2.left_stick_y);
