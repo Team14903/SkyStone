@@ -96,9 +96,9 @@ public class SkystoneTeleOp extends LinearOpMode {
 
             //Linear Slide Motors&&!latchingTouchSensorDown.getState()
             if(gamepad2.left_stick_y<0) {
-                linearslideLeft.setPower(gamepad2.left_stick_y);
+                linearslideLeft.setPower(gamepad2.left_bumper ? gamepad2.left_stick_y: gamepad1.left_stick_y/4);
             }else if (gamepad2.left_stick_y>0) {
-                linearslideLeft.setPower(gamepad2.left_stick_y);
+                linearslideLeft.setPower(gamepad2.left_bumper ? gamepad2.left_stick_y: gamepad1.left_stick_y/4);
             }else {
                 linearslideLeft.setPower(0);
             }
