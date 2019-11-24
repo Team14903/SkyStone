@@ -127,7 +127,7 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode{
     // This is a method to make code easier to read, see above
     public void DriveInStraightLine(double Power,double distance,double angle) throws InterruptedException {
         double overallAccelerationRobot = 0;
-        int numberOfTimesRun=0;
+        double numberOfTimesRun=
         xLeftStick = Math.cos(angle);
         yLeftStick = Math.sin(angle);
         DistanceRobot =0;
