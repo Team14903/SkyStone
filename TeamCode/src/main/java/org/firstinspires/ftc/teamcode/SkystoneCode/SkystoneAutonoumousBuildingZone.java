@@ -78,8 +78,6 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode{
         motorBackRight = hardwareMap.dcMotor.get("motorBackRight");
         motorBackLeft = hardwareMap.dcMotor.get("motorBackLeft");
 
-        //Set drive motors to opposite directions(is reversable if needed) and set latching motor to forward
-
         //Configure Servos
         armServo = hardwareMap.servo.get("motorArm");
 
@@ -105,7 +103,6 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode{
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
         while (opModeIsActive()) {
-
             DriveInStraightLine(1,1.06,70);
             TerrenceTheServo.setPosition(1);
             NerrenceTheServo.setPosition(1);
@@ -113,9 +110,6 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode{
             TerrenceTheServo.setPosition(0);
             NerrenceTheServo.setPosition(0);
             DriveInStraightLine(1, 1.46,270);
-
-
-
 
             Thread.sleep(500);
             telemetry.addData("Right Wheel Encoder", 0 );
@@ -157,16 +151,6 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode{
         motorBackRight.setPower(0);
 
     }
-
-
-
-
-
-
-
-
-
-
 
 
 /*

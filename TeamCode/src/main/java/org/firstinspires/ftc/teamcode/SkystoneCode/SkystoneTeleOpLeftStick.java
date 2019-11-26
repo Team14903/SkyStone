@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.SkystoneCode;
 
+import android.util.Log;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -10,8 +12,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
 //@Disabled
-@TeleOp(name= "TeleOp Basic Program")
-public class SkystoneTeleOp extends LinearOpMode {
+@TeleOp(name= "TeleOp Left Program")
+public class SkystoneTeleOpLeftStick extends LinearOpMode {
 
     //Declare motors
     private DcMotor motorFrontRight;
@@ -67,9 +69,10 @@ public class SkystoneTeleOp extends LinearOpMode {
         //Set drive motors to opposite directions(is reversable if needed) and set latching motor to forward
         //Update 10.1.18: Setting right motor direction to reverse to enable 1 joystick driving
         motorFrontRight.setDirection(DcMotor.Direction.FORWARD);
-        motorFrontLeft.setDirection(DcMotor.Direction.REVERSE);
-        motorBackRight.setDirection(DcMotor.Direction.REVERSE);
+        motorFrontLeft.setDirection(DcMotor.Direction.FORWARD);
+        motorBackRight.setDirection(DcMotor.Direction.FORWARD);
         motorBackLeft.setDirection(DcMotor.Direction.FORWARD);
+        
 
 
         //Configure Servos
@@ -83,27 +86,55 @@ public class SkystoneTeleOp extends LinearOpMode {
         //INSERT CODE HERE
         while(opModeIsActive()) {
             //Spin Robot Left or Right
-            motorFrontLeft.setPower(gamepad1.left_trigger-gamepad1.right_trigger);
-            motorBackRight.setPower(gamepad1.right_trigger-gamepad1.left_trigger);
-            motorFrontRight.setPower(gamepad1.right_trigger-gamepad1.left_trigger);
-            motorBackLeft.setPower(gamepad1.left_trigger-gamepad1.right_trigger);
-
+            if((gamepad1.left_trigger+gamepad1.right_trigger>0.2)) {
+                motorFrontLeft.setPower(-gamepad1.left_trigger + gamepad1.right_trigger);
+                motorBackRight.setPower(-gamepad1.left_trigger + gamepad1.right_trigger);
+                motorFrontRight.setPower(-gamepad1.left_trigger + gamepad1.right_trigger);
+                motorBackLeft.setPower(-gamepad1.left_trigger + gamepad1.right_trigger);
+            }else if(gamepad1.left_bumper&&((Math.abs(gamepad1.left_stick_x)+Math.abs(gamepad1.left_stick_y))>0)) {
+                motorFrontLeft.setPower((-gamepad1.left_stick_y+gamepad1.left_stick_x)/2);
+                motorFrontRight.setPower((gamepad1.left_stick_y+gamepad1.left_stick_x)/2);
+                motorBackLeft.setPower((-gamepad1.left_stick_y-gamepad1.left_stick_x)/2);
+                motorBackRight.setPower((gamepad1.left_stick_y-gamepad1.left_stick_x)/2);
+            } else if((Math.abs(gamepad1.left_stick_x)+Math.abs(gamepad1.left_stick_y)>0)) {
+                motorFrontLeft.setPower(-gamepad1.left_stick_y+gamepad1.left_stick_x);
+                motorFrontRight.setPower(gamepad1.left_stick_y+gamepad1.left_stick_x);
+                motorBackLeft.setPower(-gamepad1.left_stick_y-gamepad1.left_stick_x);
+                motorBackRight.setPower(gamepad1.left_stick_y-gamepad1.left_stick_x);
+            } else {
+                motorFrontLeft.setPower(0);
+                motorBackLeft.setPower(0);
+                motorFrontRight.setPower(0);
+                motorBackRight.setPower(0);
+            }
+            telemetry.addData("Right Motors", gamepad1.right_trigger-gamepad1.left_trigger);
+            telemetry.addData("Left Motors", gamepad1.left_trigger-gamepad1.right_trigger);
+            Log.d("Gamepad.1.y","Gamepady="+(gamepad1.left_stick_y));
+            telemetry.addData("Gamepady=",(gamepad1.left_stick_y));
             //Mover robot in all directions in a straight line
-            motorFrontLeft.setPower(Range.clip(gamepad1.left_stick_y - gamepad1.left_stick_x,-1, 1));
-            motorFrontRight.setPower(Range.clip(gamepad1.left_stick_y + gamepad1.left_stick_x,-1, 1));
-            motorBackLeft.setPower(Range.clip(gamepad1.right_stick_y + gamepad1.left_stick_x,-1, 1));
-            motorBackRight.setPower(Range.clip(gamepad1.right_stick_y - gamepad1.left_stick_x, -1, 1));
-
+            /*
+            if(gamepad1.dpad_up){
+             motorFrontLeft.setPower(.5);
+             motorFrontRight.setPower(.5);
+            }else if(gamepad1.dpad_down){
+                motorBackLeft.setPower(.5);
+                motorBackRight.setPower(.5);
+            }else if(gamepad1.dpad_right){
+                motorBackRight.setPower(.5);
+                motorFrontRight.setPower(.5);
+            }else if(gamepad1.dpad_left){
+                motorBackLeft.setPower(.5);
+                motorFrontLeft.setPower(.5);
+            }
+            */
             //Linear Slide Motors&&!latchingTouchSensorDown.getState()
-            if(gamepad2.left_stick_y<0) {
-                linearslideLeft.setPower(gamepad2.left_bumper ? gamepad2.left_stick_y: gamepad1.left_stick_y/4);
-            }else if (gamepad2.left_stick_y>0) {
-                linearslideLeft.setPower(gamepad2.left_bumper ? gamepad2.left_stick_y: gamepad1.left_stick_y/4);
+            if(!(gamepad2.left_stick_y==0)) {
+                linearslideLeft.setPower(gamepad2.left_bumper ? gamepad2.left_stick_y: gamepad2.left_stick_y/2);
             }else {
                 linearslideLeft.setPower(0);
             }
             //Terrence servo control
-            NewTerrence=gamepad1.a;
+            NewTerrence=gamepad2.a;
             if(!OldTerrence&&NewTerrence){
                 if (TerrenceTheServo.getPosition()==0){
                     TerrenceTheServo.setPosition(1);
@@ -129,6 +160,7 @@ public class SkystoneTeleOp extends LinearOpMode {
             OldRarm=NewRarm;
 
             telemetry.update();
+            Thread.sleep(100);
         }
 
 
