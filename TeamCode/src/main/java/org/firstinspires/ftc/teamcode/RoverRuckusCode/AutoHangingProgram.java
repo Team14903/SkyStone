@@ -84,7 +84,6 @@ public class AutoHangingProgram extends LinearOpMode{
         parametersGyro.mode = BNO055IMU.SensorMode.IMU;
         parametersGyro.loggingTag = "IMU";
         imu = hardwareMap.get(BNO055IMU.class, "imu name");
-        //Todo: find if initializing the code will be more accurate here or right before the code is begun
         imu.initialize(parametersGyro);
         float firstGyroAngle = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZXY, AngleUnit.DEGREES).firstAngle;
         while (!isStopRequested() && !imu.isGyroCalibrated()) {
