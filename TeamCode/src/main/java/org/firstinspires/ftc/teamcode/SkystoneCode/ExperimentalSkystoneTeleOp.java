@@ -49,12 +49,13 @@ public class ExperimentalSkystoneTeleOp extends LinearOpMode {
     private static boolean NewLarm =false;
     private static boolean OldRarm =false;
     private static boolean NewRarm =false;
-    private static double slopeForLeftJoystick = 1;
-    private static double xLeftJoystick =0;
-    private static double yLeftJoystick = 0;
-    private static double referenceAngleLeftJoy=0;
-    private static double angleLeftJoy = 0;
-    private static double robotAngle =0;
+    private static double slopeForLeftJoystick = 1; //calculates slope of the line that goes through the origin and x and y value for the joystick
+    private static double xLeftJoystick =0;         //xvalue for joystick
+    private static double yLeftJoystick = 0;        //yvalue for joystick
+    private static double referenceAngleLeftJoy=0;  //reference angle for the line^ in Quadrant 1 of unit circle
+    private static double angleLeftJoy = 0;         //angle of the line^ for the joystick
+    private static double robotAngle =0;            //angle of the robot
+    private static double relativeRobotAngle =0;    //to reset angle of robot
 
     //Define Gyro
     BNO055IMU imu;
@@ -76,10 +77,6 @@ public class ExperimentalSkystoneTeleOp extends LinearOpMode {
         motorBackLeft = hardwareMap.dcMotor.get("motorBackLeft");
         linearslideLeft = hardwareMap.crservo.get("linearslideLeft");
         linearslideRight = hardwareMap.crservo.get("linearslideRight");
-
-        //Value positions for servos
-        final double armRetractedPosition = 0.0;
-        final double armExtendedPosition = 0.2;
 
         //Set drive motors to opposite directions(is reversable if needed) and set latching motor to forward
         //Update 10.1.18: Setting right motor direction to reverse to enable 1 joystick driving
@@ -114,7 +111,9 @@ public class ExperimentalSkystoneTeleOp extends LinearOpMode {
 
         //INSERT CODE HERE
         while(opModeIsActive()) {
-            //Spin Robot Left or Right
+            //Reset gyro angle if needed
+            relativeRobotAngle = gamepad1.y ? imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZXY, AngleUnit.RADIANS).firstAngle:relativeRobotAngle;
+            //Move robot in rotations, one direction, or stop
             if((gamepad1.left_trigger+gamepad1.right_trigger>0.2)) {
                 motorFrontLeft.setPower(-gamepad1.left_trigger + gamepad1.right_trigger);
                 motorBackRight.setPower(-gamepad1.left_trigger + gamepad1.right_trigger);
@@ -192,21 +191,43 @@ public class ExperimentalSkystoneTeleOp extends LinearOpMode {
 
     }
     public void DriveInStraightLine(double powerMultiplier) throws InterruptedException {
-        slopeForLeftJoystick = gamepad1.left_stick_y/gamepad1.left_stick_x;
-        xLeftJoystick=Math.sqrt(1/(Math.pow(slopeForLeftJoystick,2)+1));
-        yLeftJoystick=slopeForLeftJoystick*xLeftJoystick;
+        double gamepadx = gamepad1.left_stick_x;        //holds value of sensor
+        double gamepady = gamepad1.left_stick_y;        //holds value of sensor
+        double gamepadtrigger = 1-gamepad1.left_trigger;  //holds value of sensor
+
+        //Calculations for the angle of the joystick
+        slopeForLeftJoystick = gamepady/gamepadx;                                  //Calculates slope using m=y/x formula
+        xLeftJoystick=Math.sqrt(1/(Math.pow(slopeForLeftJoystick,2)+1));           //Calculated the x value of the intersection between x^2 +y^2 =1 and y=mx
+        yLeftJoystick=slopeForLeftJoystick*xLeftJoystick;                          //Calculated the y value from y=mx where x is from above
+        xLeftJoystick=gamepadx<0 ? -xLeftJoystick:xLeftJoystick;                   //Negates x if x is negative on joystick
+        yLeftJoystick=gamepady<0 ? -yLeftJoystick:yLeftJoystick;                   //Negates y if y is negative on joystick
         referenceAngleLeftJoy=(Math.abs(Math.acos(xLeftJoystick))+Math.abs(Math.asin(yLeftJoystick)))/2;
         angleLeftJoy= (xLeftJoystick<0&&yLeftJoystick>0)? Math.PI -referenceAngleLeftJoy:       //if in quadrant 2, make angle = π-reference angle
                 ((xLeftJoystick<0&&yLeftJoystick<0)? Math.PI +referenceAngleLeftJoy:            //if in quadrant 3, make angle = π+reference angle
                         (((xLeftJoystick<0&&yLeftJoystick<0)? 2*Math.PI -referenceAngleLeftJoy: //if in quadrant 4, make angle = 2π-reference angle
                                 referenceAngleLeftJoy)));                                       //if in quadrant 1,, make angle = reference angle
-        robotAngle= angleLeftJoy-imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZXY, AngleUnit.RADIANS).firstAngle;
-        double xRobot = Math.cos(robotAngle);
-        double yRobot = Math.sin(robotAngle);
-        motorFrontLeft.setPower((-yRobot+xRobot)*powerMultiplier);
-        motorFrontRight.setPower((yRobot+xRobot)*powerMultiplier);
-        motorBackLeft.setPower((-yRobot-xRobot)*powerMultiplier);
-        motorBackRight.setPower((yRobot-xRobot)*powerMultiplier);
+
+        //Calculations to find the desired angle relative to the robot
+        double currentRobotAngle =imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZXY, AngleUnit.RADIANS).firstAngle;
+        robotAngle= angleLeftJoy-(currentRobotAngle-relativeRobotAngle);                        //Calculates the desired angle of movement relative to the robot
+
+        double xRobot = Math.cos(robotAngle);                                                   //Calculates the necessary movement in the x
+        double yRobot = Math.sin(robotAngle);                                                   //Calculates the necessary movement in the y
+
+        //Following lines scale the powers to get the same proportion in the x and y to achieving maximum speed
+        if(yRobot>xRobot){
+            yRobot=1;
+            xRobot=(1/yRobot)*(xRobot);
+        }else{
+            xRobot=1;
+            yRobot=(1/xRobot)*(yRobot);
+        }
+
+        //set powers to the motors
+        motorFrontLeft.setPower((-yRobot+xRobot)*powerMultiplier*gamepadtrigger);
+        motorFrontRight.setPower((yRobot+xRobot)*powerMultiplier*gamepadtrigger);
+        motorBackLeft.setPower((-yRobot-xRobot)*powerMultiplier*gamepadtrigger);
+        motorBackRight.setPower((yRobot-xRobot)*powerMultiplier*gamepadtrigger);
         telemetry.update();
     }
 }
