@@ -104,11 +104,15 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode{
         waitForStart();
         while (opModeIsActive()) {
             DriveInStraightLine(1,1.06,70);
+            Thread.sleep(2000);
             TerrenceTheServo.setPosition(1);
             NerrenceTheServo.setPosition(1);
+            Thread.sleep(2000);
             DriveInStraightLine(-1,1,0);
+            Thread.sleep(2000);
             TerrenceTheServo.setPosition(0);
             NerrenceTheServo.setPosition(0);
+            Thread.sleep(2000);
             DriveInStraightLine(1, 1.46,270);
 
             Thread.sleep(500);
