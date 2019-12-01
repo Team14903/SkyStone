@@ -76,7 +76,6 @@ public class ExperimentalSkystoneTeleOp extends LinearOpMode {
         motorBackRight = hardwareMap.dcMotor.get("motorBackRight");
         motorBackLeft = hardwareMap.dcMotor.get("motorBackLeft");
         linearslideLeft = hardwareMap.crservo.get("linearslideLeft");
-        linearslideRight = hardwareMap.crservo.get("linearslideRight");
 
         //Set drive motors to opposite directions(is reversable if needed) and set latching motor to forward
         //Update 10.1.18: Setting right motor direction to reverse to enable 1 joystick driving
@@ -120,7 +119,7 @@ public class ExperimentalSkystoneTeleOp extends LinearOpMode {
                 motorFrontRight.setPower(-gamepad1.left_trigger + gamepad1.right_trigger);
                 motorBackLeft.setPower(-gamepad1.left_trigger + gamepad1.right_trigger);
             }else if(gamepad1.left_bumper&&((Math.abs(gamepad1.left_stick_x)+Math.abs(gamepad1.left_stick_y))>0)) {
-                DriveInStraightLine(.5);
+                DriveInStraightLine(1);
             } else if((Math.abs(gamepad1.left_stick_x)+Math.abs(gamepad1.left_stick_y)>0)) {
                 DriveInStraightLine(1);
             } else {
@@ -191,43 +190,53 @@ public class ExperimentalSkystoneTeleOp extends LinearOpMode {
 
     }
     public void DriveInStraightLine(double powerMultiplier) throws InterruptedException {
-        double gamepadx = gamepad1.left_stick_x;        //holds value of sensor
+        double gamepadx = gamepad1.left_stick_x+.001;        //holds value of sensor
         double gamepady = gamepad1.left_stick_y;        //holds value of sensor
         double gamepadtrigger = 1-gamepad1.left_trigger;  //holds value of sensor
 
         //Calculations for the angle of the joystick
         slopeForLeftJoystick = gamepady/gamepadx;                                  //Calculates slope using m=y/x formula
         xLeftJoystick=Math.sqrt(1/(Math.pow(slopeForLeftJoystick,2)+1));           //Calculated the x value of the intersection between x^2 +y^2 =1 and y=mx
-        yLeftJoystick=slopeForLeftJoystick*xLeftJoystick;                          //Calculated the y value from y=mx where x is from above
-        xLeftJoystick=gamepadx<0 ? -xLeftJoystick:xLeftJoystick;                   //Negates x if x is negative on joystick
-        yLeftJoystick=gamepady<0 ? -yLeftJoystick:yLeftJoystick;                   //Negates y if y is negative on joystick
-        referenceAngleLeftJoy=(Math.abs(Math.acos(xLeftJoystick))+Math.abs(Math.asin(yLeftJoystick)))/2;
-        angleLeftJoy= (xLeftJoystick<0&&yLeftJoystick>0)? Math.PI -referenceAngleLeftJoy:       //if in quadrant 2, make angle = π-reference angle
-                ((xLeftJoystick<0&&yLeftJoystick<0)? Math.PI +referenceAngleLeftJoy:            //if in quadrant 3, make angle = π+reference angle
-                        (((xLeftJoystick<0&&yLeftJoystick<0)? 2*Math.PI -referenceAngleLeftJoy: //if in quadrant 4, make angle = 2π-reference angle
+        //xLeftJoystick=gamepadx<0 ? -xLeftJoystick:xLeftJoystick;                   //Negates x if x is negative on joystick
+        //yLeftJoystick=gamepady<0 ? -yLeftJoystick:yLeftJoystick;                   //Negates y if y is negative on joystick
+        referenceAngleLeftJoy=Math.acos(xLeftJoystick);
+        angleLeftJoy= (gamepadx<0&&gamepady>=0)? Math.PI -referenceAngleLeftJoy:       //if in quadrant 2, make angle = π-reference angle
+                ((gamepadx<=0&&gamepady<0)? Math.PI +referenceAngleLeftJoy:            //if in quadrant 3, make angle = π+reference angle
+                        (((gamepadx>0&&gamepady<0)? 2*Math.PI -referenceAngleLeftJoy: //if in quadrant 4, make angle = 2π-reference angle
                                 referenceAngleLeftJoy)));                                       //if in quadrant 1,, make angle = reference angle
 
         //Calculations to find the desired angle relative to the robot
         double currentRobotAngle =imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZXY, AngleUnit.RADIANS).firstAngle;
         robotAngle= angleLeftJoy-(currentRobotAngle-relativeRobotAngle);                        //Calculates the desired angle of movement relative to the robot
-
+        robotAngle = angleLeftJoy-Math.PI/2;
+        robotAngle = robotAngle<0 ? robotAngle + 2*Math.PI-Math.PI/2: robotAngle-Math.PI/2;
         double xRobot = Math.cos(robotAngle);                                                   //Calculates the necessary movement in the x
         double yRobot = Math.sin(robotAngle);                                                   //Calculates the necessary movement in the y
 
         //Following lines scale the powers to get the same proportion in the x and y to achieving maximum speed
-        if(yRobot>xRobot){
+        /*if(yRobot>xRobot){
             yRobot=1;
             xRobot=(1/yRobot)*(xRobot);
         }else{
             xRobot=1;
             yRobot=(1/xRobot)*(yRobot);
-        }
-
+        }*/
+        //+xRobot   +xRobot -xRobot -xRobot
         //set powers to the motors
-        motorFrontLeft.setPower((-yRobot+xRobot)*powerMultiplier*gamepadtrigger);
-        motorFrontRight.setPower((yRobot+xRobot)*powerMultiplier*gamepadtrigger);
-        motorBackLeft.setPower((-yRobot-xRobot)*powerMultiplier*gamepadtrigger);
-        motorBackRight.setPower((yRobot-xRobot)*powerMultiplier*gamepadtrigger);
-        telemetry.update();
+        motorFrontLeft.setPower((-yRobot-xRobot)*powerMultiplier*gamepadtrigger);
+        motorFrontRight.setPower((yRobot-xRobot)*powerMultiplier*gamepadtrigger);
+        motorBackLeft.setPower((-yRobot+xRobot)*powerMultiplier*gamepadtrigger);
+        motorBackRight.setPower((yRobot+xRobot)*powerMultiplier*gamepadtrigger);
+
+        Log.d("DEBUGGER", "slope: "+slopeForLeftJoystick);
+        Log.d("DEBUGGER", "Joystickx:"+gamepadx);
+        Log.d("DEBUGGER", "Joysticky:"+gamepady);
+        Log.d("DEBUGGER", "ref angle: "+referenceAngleLeftJoy);
+        Log.d("DEBUGGER", "angle: "+angleLeftJoy);
+        Log.d("DEBUGGER", "angleRobot: "+currentRobotAngle);
+        Log.d("DEBUGGER", "xRobot: "+xRobot);
+        Log.d("DEBUGGER", "yRobot: "+yRobot);
+
+
     }
 }

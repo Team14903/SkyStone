@@ -1,50 +1,29 @@
 package org.firstinspires.ftc.teamcode.SkystoneCode;
 
 
-import android.os.Build;
+import android.hardware.Sensor;
+import android.hardware.SensorDirectChannel;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
 import android.util.Log;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.robotcontroller.external.samples.SensorBNO055IMU;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-
-import org.firstinspires.ftc.robotcore.external.ClassFactory;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
-import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
-
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
-import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
-
-
 
 
 @Autonomous
 //@Disabled
-public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
+public class TestingAuto extends LinearOpMode {
     private double version = 2.3;
 
     private String Picture;
@@ -92,37 +71,7 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
     public float phoneZRotate = 90;*/
 
     public void runOpMode() throws InterruptedException {
-        /*//Vuforia initialization
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
-        parameters.vuforiaLicenseKey = VUFORIA_KEY;
-        parameters.cameraDirection = CAMERA_CHOICE;
-        vuforia = ClassFactory.getInstance().createVuforia(parameters);
-        VuforiaTrackables targetsSkyStone = this.vuforia.loadTrackablesFromAsset("Skystone");
-        VuforiaTrackable stoneTarget = targetsSkyStone.get(0);
-        stoneTarget.setName("Stone Target");
-        List<VuforiaTrackable> allTrackables = new ArrayList<VuforiaTrackable>();
-        allTrackables.addAll(targetsSkyStone);
-        stoneTarget.setLocation(OpenGLMatrix
-                .translation(0, 0, stoneZ)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, -90)));
-        phoneYRotate = CAMERA_CHOICE == BACK ? -90 : 90;
-        phoneXRotate = PHONE_IS_PORTRAIT ? 90 : phoneXRotate;
-        final float CAMERA_FORWARD_DISPLACEMENT = 4.0f * mmPerInch;   // eg: Camera is 4 Inches in front of robot center
-        final float CAMERA_VERTICAL_DISPLACEMENT = 8.0f * mmPerInch;   // eg: Camera is 8 Inches above ground
-        final float CAMERA_LEFT_DISPLACEMENT = 0;     // eg: Camera is ON the robot's center line
-        OpenGLMatrix robotFromCamera = OpenGLMatrix
-                .translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, YZX, DEGREES, phoneYRotate, phoneZRotate, phoneXRotate));
-        for (VuforiaTrackable trackable : allTrackables) {
-            ((VuforiaTrackableDefaultListener) trackable.getListener()).setPhoneInformation(robotFromCamera, parameters.cameraDirection);
-        }*/
 
-        //Configure Sensors
-        //latchingTouchSensorDown = hardwareMap.get(DigitalChannel.class, "latchingTouchSensorDown");
-        //latchingTouchSensorUp = hardwareMap.get(DigitalChannel.class, "latchingTouchSensorUp");
-        //latchingTouchSensorUp.setMode(DigitalChannel.Mode.INPUT);
-        //latchingTouchSensorDown.setMode(DigitalChannel.Mode.INPUT);
         TerrenceTheServo = hardwareMap.servo.get("TerrenceTheServo");
         NerrenceTheServo = hardwareMap.servo.get("NerrenceTheServo");
 
@@ -164,79 +113,38 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
         //targetsSkyStone.activate();
 
         while (opModeIsActive()) {
-            /*while (!targetVisible) {
-                targetVisible = false;
-                for (VuforiaTrackable trackable : allTrackables) {
-                    if (((VuforiaTrackableDefaultListener)trackable.getListener()).isVisible()) {
-                        telemetry.addData("Visible Target", trackable.getName());
-                        targetVisible = true;
-                        OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener)trackable.getListener()).getUpdatedRobotLocation();
-                        lastLocation =robotLocationTransform != null? robotLocationTransform:lastLocation;
-                        break;
-                    }
-                }
-
-                if (targetVisible) {
-                    VectorF translation = lastLocation.getTranslation();
-                    telemetry.addData("Pos (in)", "{X, Y, Z} = %.1f, %.1f, %.1f",
-                            translation.get(0) / mmPerInch, translation.get(1) / mmPerInch, translation.get(2) / mmPerInch);
-                    Orientation rotation = Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, DEGREES);
-                    telemetry.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle);
-                } else { telemetry.addData("Visible Target", "none"); }
-                telemetry.update();
-            }*/
-            DriveInStraightLine(1, 1.06, 70);
-            Thread.sleep(2000);
+            DriveInStraightLine(1, 100, 70);
             TerrenceTheServo.setPosition(1);
             NerrenceTheServo.setPosition(1);
-            Thread.sleep(2000);
-            DriveInStraightLine(-1, 1, 0);
-            Thread.sleep(2000);
+            DriveInStraightLine(-1, 100, 0);
             TerrenceTheServo.setPosition(0);
             NerrenceTheServo.setPosition(0);
-            Thread.sleep(2000);
-            DriveInStraightLine(1, 1.46, 270);
+            DriveInStraightLine(1, 100, 270);
 
 
             Thread.sleep(500);
             telemetry.addData("Right Wheel Encoder", 0);
             telemetry.update();
             requestOpModeStop();
-
-
-
-
         }
     }
 
     // This is a method to make code easier to read, see above
     public void DriveInStraightLine(double Power, double distance, double angle) throws InterruptedException {
-        double overallAccelerationRobot = 0;
-        double numberOfTimesRun =
-                xLeftStick = Math.cos(angle);
         yLeftStick = Math.sin(angle);
         DistanceRobot = 0;
         long overallTime;
         long initialTime = System.currentTimeMillis();
-        double initialPosition = Math.sqrt(Math.pow(imu.getPosition().x, 2) + Math.pow(imu.getPosition().y, 2) + Math.pow(imu.getPosition().z, 2));
+        distance += (Math.abs(motorBackLeft.getCurrentPosition())+Math.abs(motorBackRight.getCurrentPosition())+Math.abs(motorFrontLeft.getCurrentPosition())+Math.abs(motorFrontRight.getCurrentPosition()))/4;
         while (DistanceRobot < distance && !isStopRequested()) {
             motorFrontLeft.setPower(Range.clip(-yLeftStick + xLeftStick, -1, 1) * Power);
             motorFrontRight.setPower(Range.clip(yLeftStick + xLeftStick, -1, 1) * Power);
             motorBackLeft.setPower(Range.clip(-yLeftStick - xLeftStick, -1, 1) * Power);
             motorBackRight.setPower(Range.clip(yLeftStick - xLeftStick, -1, 1) * Power);
-
-            overallTime = System.currentTimeMillis() - initialTime;
-            accelerationRobot = Math.sqrt(Math.pow(imu.getLinearAcceleration().xAccel, 2) + Math.pow(imu.getLinearAcceleration().yAccel, 2) + Math.pow(imu.getLinearAcceleration().zAccel, 2));
-            overallAccelerationRobot += accelerationRobot;
-            numberOfTimesRun += 1;
-            DistanceRobot = (overallAccelerationRobot / numberOfTimesRun) * Math.pow(overallTime, 2) / 2;
+            DistanceRobot = (Math.abs(motorBackLeft.getCurrentPosition())+Math.abs(motorBackRight.getCurrentPosition())+Math.abs(motorFrontLeft.getCurrentPosition())+Math.abs(motorFrontRight.getCurrentPosition()))/4;
             telemetry.addData("Robot Distance", DistanceRobot);
-            telemetry.addData("Acceleration  ",overallAccelerationRobot);
-            telemetry.addData("PositionX  ",imu.getPosition().x);
-            telemetry.addData("PositionY  ",imu.getPosition().y);
-            telemetry.addData("PositionZ  ",imu.getPosition().z);
+            telemetry.addData("Encoders",(Math.abs(motorBackLeft.getCurrentPosition())+Math.abs(motorBackRight.getCurrentPosition())+Math.abs(motorFrontLeft.getCurrentPosition())+Math.abs(motorFrontRight.getCurrentPosition()))/4);
 
-            telemetry.addData("Time:         ",overallTime);
             telemetry.update();
 
         }
