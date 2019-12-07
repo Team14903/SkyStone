@@ -134,14 +134,14 @@ public class SkystoneTeleOpLeftStick extends LinearOpMode {
                 linearslideLeft.setPower(0);
             }
             //Terrence servo control
-            NewTerrence=gamepad2.a;
+            NewTerrence=gamepad1.a;
             if(!OldTerrence&&NewTerrence){
                 if (TerrenceTheServo.getPosition()==0){
                     TerrenceTheServo.setPosition(1);
-                    NerrenceTheServo.setPosition(1);
+                    NerrenceTheServo.setPosition(0);
                 } else {
                     TerrenceTheServo.setPosition(0);
-                    NerrenceTheServo.setPosition(0);
+                    NerrenceTheServo.setPosition(1);
                 }
             }
             OldTerrence=NewTerrence;

@@ -95,7 +95,7 @@ public class TestingAuto extends LinearOpMode {
         imu = hardwareMap.get(BNO055IMU.class, "imu name");
         //Todo: find if initializing the code will be more accurate here or right before the code is begun
         imu.initialize(parametersGyro);
-        float firstGyroAngle = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZXY, AngleUnit.DEGREES).firstAngle;
+        float firstGyroAngle = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZXY, AngleUnit.RADIANS).firstAngle;
         while (!isStopRequested() && !imu.isGyroCalibrated()) {
             sleep(50);
             idle();
@@ -113,19 +113,9 @@ public class TestingAuto extends LinearOpMode {
         //targetsSkyStone.activate();
 
         while (opModeIsActive()) {
-            DriveInStraightLine(1, 100, 70);
-            TerrenceTheServo.setPosition(1);
-            NerrenceTheServo.setPosition(1);
-            DriveInStraightLine(-1, 100, 0);
-            TerrenceTheServo.setPosition(0);
-            NerrenceTheServo.setPosition(0);
-            DriveInStraightLine(1, 100, 270);
-
-
-            Thread.sleep(500);
-            telemetry.addData("Right Wheel Encoder", 0);
+            Log.i("DEBUGGING: ", "gyroSensor"+imu.getAngularOrientation(AxesReference.INTRINSIC,AxesOrder.XYZ,AngleUnit.DEGREES));
+            telemetry.addData("Gyro angle: ",imu.getAngularOrientation(AxesReference.INTRINSIC,AxesOrder.XYZ,AngleUnit.DEGREES));
             telemetry.update();
-            requestOpModeStop();
         }
     }
 

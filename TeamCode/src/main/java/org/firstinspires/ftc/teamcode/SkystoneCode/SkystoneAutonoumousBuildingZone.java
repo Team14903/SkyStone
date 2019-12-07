@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.SkystoneCode;
 
 
+import android.hardware.SensorEvent;
 import android.os.Build;
 import android.util.Log;
 
@@ -60,16 +61,10 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
 
 
     //Declare Sensors
-    DigitalChannel latchingTouchSensorDown;//Sensor to to test if motor has reached lower limit
-    DigitalChannel latchingTouchSensorUp; //Sensor to test if motor has reached upper limit
     private Servo TerrenceTheServo;
     private Servo NerrenceTheServo;
 
     //Variables
-    private static double driveMotorPower; // Power for drive motors
-    private static double linearSlidePower = 1; //Power for linear slide motors
-    private int secondsRun = 7;
-    private double accelerationRobot;
     private double xLeftStick;
     private double yLeftStick;
     private double DistanceRobot;
@@ -132,7 +127,10 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
         motorFrontLeft = hardwareMap.dcMotor.get("motorFrontLeft");
         motorBackRight = hardwareMap.dcMotor.get("motorBackRight");
         motorBackLeft = hardwareMap.dcMotor.get("motorBackLeft");
-
+        motorFrontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         //Configure Servos
         //armServo = hardwareMap.servo.get("motorArm");
 
@@ -148,17 +146,20 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
         imu.initialize(parametersGyro);
         float firstGyroAngle = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZXY, AngleUnit.DEGREES).firstAngle;
         while (!isStopRequested() && !imu.isGyroCalibrated()) {
+            telemetry.addData("Wait for Gyro Calibration", 0);
+            telemetry.update();
             sleep(50);
             idle();
         }
 
         //vision init
         telemetry.addData("Version:", version);
+        telemetry.addData("Ready for start", 0);
         telemetry.update();
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
-        while(!opModeIsActive()&&!isStopRequested()){
-            telemetry.addData("status","waiting for start command...");
+        while (!opModeIsActive() && !isStopRequested()) {
+            telemetry.addData("status", "waiting for start command...");
             telemetry.update();
         }
         //targetsSkyStone.activate();
@@ -185,25 +186,32 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
                 } else { telemetry.addData("Visible Target", "none"); }
                 telemetry.update();
             }*/
-            DriveInStraightLine(1, 1.06, 70);
-            Thread.sleep(2000);
-            TerrenceTheServo.setPosition(1);
-            NerrenceTheServo.setPosition(1);
-            Thread.sleep(2000);
-            DriveInStraightLine(-1, 1, 0);
-            Thread.sleep(2000);
-            TerrenceTheServo.setPosition(0);
-            NerrenceTheServo.setPosition(0);
-            Thread.sleep(2000);
-            DriveInStraightLine(1, 1.46, 270);
+            Thread.sleep(1000);
+            grabOrReleaseFoundation(false);
+            Log.i("Debugger:", "Gyro Angle Before Moving:"+imu.getAngularOrientation());
+            telemetry.addData("Status: Update Moving toward foundation", null);telemetry.update();
+            DriveInFWD(.7, 850,0,0);
+            Log.i("Debugger:", "Gyro Angle After Moving:"+imu.getAngularOrientation());
+            TurnGyro(10,2,-.2,0);
+            Thread.sleep(3000);
+            grabOrReleaseFoundation(true);
+            Thread.sleep(3000);
+
+            telemetry.addData("Status: Update Moving foundation", null);telemetry.update();
+            DriveInFWD(-.7, -50,0,0);
+            TurnGyro(0,1,.2,0);
+            Thread.sleep(3000);
+            grabOrReleaseFoundation(false);
+            Thread.sleep(5000);
+
+            telemetry.addData("Status: Parking over Line", null);telemetry.update();
+            DriveSideways(.7, 50,100,.3);
+            TurnGyro(0,1,.2,0);
+            Thread.sleep(1000);
 
 
-            Thread.sleep(500);
-            telemetry.addData("Right Wheel Encoder", 0);
             telemetry.update();
             requestOpModeStop();
-
-
 
 
         }
@@ -211,43 +219,101 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
 
     // This is a method to make code easier to read, see above
     public void DriveInStraightLine(double Power, double distance, double angle) throws InterruptedException {
-        double overallAccelerationRobot = 0;
-        double numberOfTimesRun =
-                xLeftStick = Math.cos(angle);
+        zeroMotorPower();
+
+        xLeftStick = Math.cos(angle);
         yLeftStick = Math.sin(angle);
         DistanceRobot = 0;
-        long overallTime;
-        long initialTime = System.currentTimeMillis();
-        double initialPosition = Math.sqrt(Math.pow(imu.getPosition().x, 2) + Math.pow(imu.getPosition().y, 2) + Math.pow(imu.getPosition().z, 2));
-        while (DistanceRobot < distance && !isStopRequested()) {
+        //double initialPosition = (Math.abs(motorBackLeft.getCurrentPosition())+ Math.abs(motorBackRight.getCurrentPosition())+Math.abs(motorFrontLeft.getCurrentPosition())+Math.abs(motorFrontRight.getCurrentPosition()))/4;
+        double initialPosition = 0;
+        while (statementFunction(DistanceRobot, initialPosition, distance)) {
             motorFrontLeft.setPower(Range.clip(-yLeftStick + xLeftStick, -1, 1) * Power);
             motorFrontRight.setPower(Range.clip(yLeftStick + xLeftStick, -1, 1) * Power);
             motorBackLeft.setPower(Range.clip(-yLeftStick - xLeftStick, -1, 1) * Power);
             motorBackRight.setPower(Range.clip(yLeftStick - xLeftStick, -1, 1) * Power);
 
-            overallTime = System.currentTimeMillis() - initialTime;
-            accelerationRobot = Math.sqrt(Math.pow(imu.getLinearAcceleration().xAccel, 2) + Math.pow(imu.getLinearAcceleration().yAccel, 2) + Math.pow(imu.getLinearAcceleration().zAccel, 2));
-            overallAccelerationRobot += accelerationRobot;
-            numberOfTimesRun += 1;
-            DistanceRobot = (overallAccelerationRobot / numberOfTimesRun) * Math.pow(overallTime, 2) / 2;
-            telemetry.addData("Robot Distance", DistanceRobot);
-            telemetry.addData("Acceleration  ",overallAccelerationRobot);
-            telemetry.addData("PositionX  ",imu.getPosition().x);
-            telemetry.addData("PositionY  ",imu.getPosition().y);
-            telemetry.addData("PositionZ  ",imu.getPosition().z);
+            DistanceRobot = (Math.abs(motorBackLeft.getCurrentPosition()) + Math.abs(motorBackRight.getCurrentPosition()) + Math.abs(motorFrontLeft.getCurrentPosition()) + Math.abs(motorFrontRight.getCurrentPosition())) / 4;
+            telemetry.addData("Robot Distance: ", DistanceRobot);
+            telemetry.addData("Target Distance: ", distance);
 
-            telemetry.addData("Time:         ",overallTime);
             telemetry.update();
 
         }
-        telemetry.update();
-        //Stops motors
+        zeroMotorPower();
+    }
 
-        motorFrontLeft.setPower(0);
-        motorFrontRight.setPower(0);
-        motorBackLeft.setPower(0);
-        motorBackRight.setPower(0);
+    public void DriveInFWD(double Power, double distance, int slowDownDistance, double slowDownPower) throws InterruptedException {
+        zeroMotorPower();
+        DistanceRobot = 0;
+        double initialPosition = (Math.abs(motorBackLeft.getCurrentPosition()) + Math.abs(motorBackRight.getCurrentPosition()) + Math.abs(motorFrontLeft.getCurrentPosition()) + Math.abs(motorFrontRight.getCurrentPosition())) / 4;
 
+        while ((distance>0? (DistanceRobot - initialPosition < distance): (initialPosition-DistanceRobot>distance)) && !isStopRequested()) {
+            motorFrontLeft.setPower(-Power);
+            motorFrontRight.setPower(Power);
+            motorBackLeft.setPower(-Power);
+            motorBackRight.setPower(Power);
+
+            DistanceRobot = (Math.abs(motorBackLeft.getCurrentPosition()) + Math.abs(motorBackRight.getCurrentPosition()) + Math.abs(motorFrontLeft.getCurrentPosition()) + Math.abs(motorFrontRight.getCurrentPosition())) / 4;
+            telemetry.addData("Robot Distance: ", DistanceRobot);
+            telemetry.addData("Target Distance: ", distance);
+            Log.d("Debugger", "DriveInFWD: Traveled:"+(distance>0? (DistanceRobot - initialPosition): (initialPosition-DistanceRobot))+"Goal: "+(distance>0? (distance): (-distance)));
+
+            telemetry.update();
+
+        }
+        while ((slowDownDistance>0? (DistanceRobot - initialPosition < slowDownDistance): (initialPosition-DistanceRobot>slowDownDistance)) && !isStopRequested()) {
+            motorFrontLeft.setPower(-slowDownPower);
+            motorFrontRight.setPower(slowDownPower);
+            motorBackLeft.setPower(-slowDownPower);
+            motorBackRight.setPower(slowDownPower);
+
+            DistanceRobot = (Math.abs(motorBackLeft.getCurrentPosition()) + Math.abs(motorBackRight.getCurrentPosition()) + Math.abs(motorFrontLeft.getCurrentPosition()) + Math.abs(motorFrontRight.getCurrentPosition())) / 4;
+            telemetry.addData("Robot Distance: ", DistanceRobot);
+            telemetry.addData("Target Distance: ", slowDownDistance);
+
+            telemetry.update();
+
+        }
+        zeroMotorPower();
+    }
+
+    public void DriveSideways(double Power, double distance, int slowDownDistance, double slowDownPower) throws InterruptedException {
+        zeroMotorPower();
+        DistanceRobot = 0;
+        double initialPosition = (Math.abs(motorBackLeft.getCurrentPosition()) + Math.abs(motorBackRight.getCurrentPosition()) + Math.abs(motorFrontLeft.getCurrentPosition()) + Math.abs(motorFrontRight.getCurrentPosition())) / 4;
+
+        while ((distance>0? (DistanceRobot - initialPosition < distance): (initialPosition-DistanceRobot>distance)) && !isStopRequested()) {
+            motorFrontLeft.setPower(Power);
+            motorFrontRight.setPower(Power);
+            motorBackLeft.setPower(-Power);
+            motorBackRight.setPower(-Power);
+
+            DistanceRobot = (Math.abs(motorBackLeft.getCurrentPosition()) + Math.abs(motorBackRight.getCurrentPosition()) + Math.abs(motorFrontLeft.getCurrentPosition()) + Math.abs(motorFrontRight.getCurrentPosition())) / 4;
+            telemetry.addData("Robot Distance: ", DistanceRobot);
+            telemetry.addData("Target Distance: ", distance);
+            telemetry.update();
+
+        }
+        while ((slowDownDistance>0? (DistanceRobot - initialPosition < slowDownDistance): (initialPosition-DistanceRobot>slowDownDistance)) && !isStopRequested()) {
+            motorFrontLeft.setPower(slowDownPower);
+            motorFrontRight.setPower(slowDownPower);
+            motorBackLeft.setPower(-slowDownPower);
+            motorBackRight.setPower(-slowDownPower);
+            DistanceRobot = (Math.abs(motorBackLeft.getCurrentPosition()) + Math.abs(motorBackRight.getCurrentPosition()) + Math.abs(motorFrontLeft.getCurrentPosition()) + Math.abs(motorFrontRight.getCurrentPosition())) / 4;
+            telemetry.addData("Robot Distance: ", DistanceRobot);
+            telemetry.addData("Target Distance: ", slowDownDistance);
+            telemetry.update();
+
+        }
+        zeroMotorPower();
+    }
+
+    public boolean statementFunction(double DistanceRobot, double initialPosition, double distance) {
+        if (distance < 0) {
+            return (initialPosition-DistanceRobot  > distance && !isStopRequested());
+        } else {
+            return (DistanceRobot - initialPosition < distance && !isStopRequested());
+        }
     }
 
     public void TurnGyro(float degrees, float precision, double regurlarPower, float relativeToStart) {
@@ -283,8 +349,8 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
             //turn the motors
             motorBackLeft.setPower(left * regurlarPower);
             motorFrontLeft.setPower(left * regurlarPower);
-            motorBackRight.setPower(right * regurlarPower);
-            motorFrontRight.setPower(right * regurlarPower);
+            //motorBackRight.setPower(right * regurlarPower);
+            //motorFrontRight.setPower(right * regurlarPower);
             telemetry.addData("Gyro angle", (totalDegrees - gyroReading));
             telemetry.update();
             //Update Gyro position
@@ -292,10 +358,23 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
             gyroReading = gyroReading < 0 ? 360 + gyroReading : gyroReading;
             Log.i(counter++ + ". CurrentAngle", String.valueOf(gyroReading));
         }
+        zeroMotorPower();
+        Log.i("Final Angle", String.valueOf(gyroReading));
+    }
+
+    public void zeroMotorPower() {
         motorFrontLeft.setPower(0);
         motorFrontRight.setPower(0);
         motorBackLeft.setPower(0);
         motorBackRight.setPower(0);
-        Log.i("Final Angle", String.valueOf(gyroReading));
+    }
+    public void grabOrReleaseFoundation(boolean grab){
+        if(grab){
+            TerrenceTheServo.setPosition(0);
+            NerrenceTheServo.setPosition(1);
+        } else {
+            TerrenceTheServo.setPosition(1);
+            NerrenceTheServo.setPosition(0);
+        }
     }
 }

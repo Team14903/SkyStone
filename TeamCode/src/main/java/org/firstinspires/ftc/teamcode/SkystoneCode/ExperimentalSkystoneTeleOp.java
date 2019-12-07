@@ -86,7 +86,7 @@ public class ExperimentalSkystoneTeleOp extends LinearOpMode {
 
         // Initialize Gyro
         BNO055IMU.Parameters parametersGyro = new BNO055IMU.Parameters();
-        parametersGyro.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        parametersGyro.angleUnit = BNO055IMU.AngleUnit.RADIANS;
         parametersGyro.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
         parametersGyro.loggingEnabled = false;
         parametersGyro.mode = BNO055IMU.SensorMode.IMU;
@@ -94,7 +94,7 @@ public class ExperimentalSkystoneTeleOp extends LinearOpMode {
         imu = hardwareMap.get(BNO055IMU.class, "imu name");
         //Todo: find if initializing the code will be more accurate here or right before the code is begun
         imu.initialize(parametersGyro);
-        float firstGyroAngle = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZXY, AngleUnit.DEGREES).firstAngle;
+        float firstGyroAngle = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZXY, AngleUnit.RADIANS).firstAngle;
         while (!isStopRequested() && !imu.isGyroCalibrated()) {
             sleep(50);
             idle();
@@ -111,13 +111,14 @@ public class ExperimentalSkystoneTeleOp extends LinearOpMode {
         //INSERT CODE HERE
         while(opModeIsActive()) {
             //Reset gyro angle if needed
-            relativeRobotAngle = gamepad1.y ? imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZXY, AngleUnit.RADIANS).firstAngle:relativeRobotAngle;
+            relativeRobotAngle = gamepad1.y ? imu.getAngularOrientation().firstAngle:relativeRobotAngle;
             //Move robot in rotations, one direction, or stop
             if((gamepad1.left_trigger+gamepad1.right_trigger>0.2)) {
                 motorFrontLeft.setPower(-gamepad1.left_trigger + gamepad1.right_trigger);
                 motorBackRight.setPower(-gamepad1.left_trigger + gamepad1.right_trigger);
                 motorFrontRight.setPower(-gamepad1.left_trigger + gamepad1.right_trigger);
                 motorBackLeft.setPower(-gamepad1.left_trigger + gamepad1.right_trigger);
+                Log.i("DEBUGGER", "Gyro SENSOR"+(imu.getAngularOrientation().firstAngle < 0 ? 2*Math.PI + imu.getAngularOrientation().firstAngle : imu.getAngularOrientation().firstAngle));
             }else if(gamepad1.left_bumper&&((Math.abs(gamepad1.left_stick_x)+Math.abs(gamepad1.left_stick_y))>0)) {
                 DriveInStraightLine(1);
             } else if((Math.abs(gamepad1.left_stick_x)+Math.abs(gamepad1.left_stick_y)>0)) {
@@ -192,7 +193,7 @@ public class ExperimentalSkystoneTeleOp extends LinearOpMode {
     public void DriveInStraightLine(double powerMultiplier) throws InterruptedException {
         double gamepadx = gamepad1.left_stick_x+.001;        //holds value of sensor
         double gamepady = gamepad1.left_stick_y;        //holds value of sensor
-        double gamepadtrigger = 1-gamepad1.left_trigger;  //holds value of sensor
+        double gamepadtrigger = 1-gamepad1.right_stick_y;  //holds value of sensor
 
         //Calculations for the angle of the joystick
         slopeForLeftJoystick = gamepady/gamepadx;                                  //Calculates slope using m=y/x formula
@@ -206,12 +207,12 @@ public class ExperimentalSkystoneTeleOp extends LinearOpMode {
                                 referenceAngleLeftJoy)));                                       //if in quadrant 1,, make angle = reference angle
 
         //Calculations to find the desired angle relative to the robot
-        double currentRobotAngle =imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZXY, AngleUnit.RADIANS).firstAngle;
+        double currentRobotAngle =(imu.getAngularOrientation().firstAngle < 0 ? 2*Math.PI + imu.getAngularOrientation().firstAngle : imu.getAngularOrientation().firstAngle);
+        angleLeftJoy = angleLeftJoy<0 ? angleLeftJoy + 2*Math.PI-Math.PI/2: angleLeftJoy-Math.PI/2;
         robotAngle= angleLeftJoy-(currentRobotAngle-relativeRobotAngle);                        //Calculates the desired angle of movement relative to the robot
-        robotAngle = angleLeftJoy-Math.PI/2;
-        robotAngle = robotAngle<0 ? robotAngle + 2*Math.PI-Math.PI/2: robotAngle-Math.PI/2;
-        double xRobot = Math.cos(robotAngle);                                                   //Calculates the necessary movement in the x
-        double yRobot = Math.sin(robotAngle);                                                   //Calculates the necessary movement in the y
+
+        double yRobot = -Math.cos(robotAngle);                                                   //Calculates the necessary movement in the x
+        double xRobot = Math.sin(robotAngle);                                                   //Calculates the necessary movement in the y
 
         //Following lines scale the powers to get the same proportion in the x and y to achieving maximum speed
         /*if(yRobot>xRobot){
@@ -223,17 +224,18 @@ public class ExperimentalSkystoneTeleOp extends LinearOpMode {
         }*/
         //+xRobot   +xRobot -xRobot -xRobot
         //set powers to the motors
-        motorFrontLeft.setPower((-yRobot-xRobot)*powerMultiplier*gamepadtrigger);
-        motorFrontRight.setPower((yRobot-xRobot)*powerMultiplier*gamepadtrigger);
-        motorBackLeft.setPower((-yRobot+xRobot)*powerMultiplier*gamepadtrigger);
-        motorBackRight.setPower((yRobot+xRobot)*powerMultiplier*gamepadtrigger);
+        motorFrontLeft.setPower((yRobot-xRobot)*powerMultiplier*gamepadtrigger);
+        motorFrontRight.setPower((-yRobot-xRobot)*powerMultiplier*gamepadtrigger);
+        motorBackLeft.setPower((yRobot+xRobot)*powerMultiplier*gamepadtrigger);
+        motorBackRight.setPower((-yRobot+xRobot)*powerMultiplier*gamepadtrigger);
 
-        Log.d("DEBUGGER", "slope: "+slopeForLeftJoystick);
-        Log.d("DEBUGGER", "Joystickx:"+gamepadx);
-        Log.d("DEBUGGER", "Joysticky:"+gamepady);
-        Log.d("DEBUGGER", "ref angle: "+referenceAngleLeftJoy);
+        //Log.d("DEBUGGER", "slope: "+slopeForLeftJoystick);
+        //Log.d("DEBUGGER", "Joystickx:"+gamepadx);
+        //Log.d("DEBUGGER", "Joysticky:"+gamepady);
+        //Log.d("DEBUGGER", "ref angle: "+referenceAngleLeftJoy);
         Log.d("DEBUGGER", "angle: "+angleLeftJoy);
-        Log.d("DEBUGGER", "angleRobot: "+currentRobotAngle);
+        Log.d("DEBUGGER", "angleRobot: "+(currentRobotAngle-relativeRobotAngle));
+        Log.d("DEBUGGER", "desired angle: "+(robotAngle));
         Log.d("DEBUGGER", "xRobot: "+xRobot);
         Log.d("DEBUGGER", "yRobot: "+yRobot);
 
