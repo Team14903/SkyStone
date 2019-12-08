@@ -147,7 +147,7 @@ public class SkystoneTeleOpLeftStick extends LinearOpMode {
             OldTerrence=NewTerrence;
 
             //Right And Left arm servo
-            NewRarm=gamepad1.x;
+            NewRarm=gamepad2.x;
             if(!OldRarm&&NewRarm){
                 if (RightServoArm.getPosition()==1){
                     RightServoArm.setPosition(0);

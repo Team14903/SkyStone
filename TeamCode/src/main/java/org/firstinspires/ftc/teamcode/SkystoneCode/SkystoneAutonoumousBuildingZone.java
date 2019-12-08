@@ -136,7 +136,7 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
 
         // Initialize Gyro
         BNO055IMU.Parameters parametersGyro = new BNO055IMU.Parameters();
-        parametersGyro.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        parametersGyro.angleUnit = BNO055IMU.AngleUnit.RADIANS;
         parametersGyro.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
         parametersGyro.loggingEnabled = false;
         parametersGyro.mode = BNO055IMU.SensorMode.IMU;
@@ -192,20 +192,23 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
             telemetry.addData("Status: Update Moving toward foundation", null);telemetry.update();
             DriveInFWD(.7, 850,0,0);
             Log.i("Debugger:", "Gyro Angle After Moving:"+imu.getAngularOrientation());
-            TurnGyro(10,2,-.2,0);
+            //TurnGyro(10,2,-.2,0);
             Thread.sleep(3000);
             grabOrReleaseFoundation(true);
             Thread.sleep(3000);
 
             telemetry.addData("Status: Update Moving foundation", null);telemetry.update();
             DriveInFWD(-.7, -50,0,0);
-            TurnGyro(0,1,.2,0);
+            DriveInFWD(.1,20,0,0);
+            TurnGyro(270,1,-.5,0);
+            DriveInFWD(1,200,0,0);
             Thread.sleep(3000);
             grabOrReleaseFoundation(false);
             Thread.sleep(5000);
 
             telemetry.addData("Status: Parking over Line", null);telemetry.update();
-            DriveSideways(.7, 50,100,.3);
+            DriveSideways(.2, 50,0,0);
+            DriveInFWD(-1,100,0,0);
             TurnGyro(0,1,.2,0);
             Thread.sleep(1000);
 
@@ -218,8 +221,8 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
     }
 
     // This is a method to make code easier to read, see above
-    public void DriveInStraightLine(double Power, double distance, double angle) throws InterruptedException {
-        zeroMotorPower();
+    /*public void DriveInStraightLine(double Power, double distance, double angle) throws InterruptedException {
+        zeroMotorPower();//Makes sure that the motor isn't moving before the function begins
 
         xLeftStick = Math.cos(angle);
         yLeftStick = Math.sin(angle);
@@ -240,91 +243,90 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
 
         }
         zeroMotorPower();
-    }
+    }*/
 
     public void DriveInFWD(double Power, double distance, int slowDownDistance, double slowDownPower) throws InterruptedException {
-        zeroMotorPower();
+        zeroMotorPower();//makes sure the robot isn't moving before the function begins
         DistanceRobot = 0;
+        //Set the initial position of the robot encoders for future reference
         double initialPosition = (Math.abs(motorBackLeft.getCurrentPosition()) + Math.abs(motorBackRight.getCurrentPosition()) + Math.abs(motorFrontLeft.getCurrentPosition()) + Math.abs(motorFrontRight.getCurrentPosition())) / 4;
-
+        //While the distance the robot traveled is less than the target distance...
         while ((distance>0? (DistanceRobot - initialPosition < distance): (initialPosition-DistanceRobot>distance)) && !isStopRequested()) {
+            //Set the power to the motors to drive fowards or backwards
             motorFrontLeft.setPower(-Power);
             motorFrontRight.setPower(Power);
             motorBackLeft.setPower(-Power);
             motorBackRight.setPower(Power);
-
+            //Store the current distance that the motor encoders traveled
             DistanceRobot = (Math.abs(motorBackLeft.getCurrentPosition()) + Math.abs(motorBackRight.getCurrentPosition()) + Math.abs(motorFrontLeft.getCurrentPosition()) + Math.abs(motorFrontRight.getCurrentPosition())) / 4;
+            //Log and telemetry to debug any issues
             telemetry.addData("Robot Distance: ", DistanceRobot);
             telemetry.addData("Target Distance: ", distance);
             Log.d("Debugger", "DriveInFWD: Traveled:"+(distance>0? (DistanceRobot - initialPosition): (initialPosition-DistanceRobot))+"Goal: "+(distance>0? (distance): (-distance)));
-
             telemetry.update();
 
         }
         while ((slowDownDistance>0? (DistanceRobot - initialPosition < slowDownDistance): (initialPosition-DistanceRobot>slowDownDistance)) && !isStopRequested()) {
+            //Set a slower power as the target distance is approached
             motorFrontLeft.setPower(-slowDownPower);
             motorFrontRight.setPower(slowDownPower);
             motorBackLeft.setPower(-slowDownPower);
             motorBackRight.setPower(slowDownPower);
-
+            //Measure current distance of encoders
             DistanceRobot = (Math.abs(motorBackLeft.getCurrentPosition()) + Math.abs(motorBackRight.getCurrentPosition()) + Math.abs(motorFrontLeft.getCurrentPosition()) + Math.abs(motorFrontRight.getCurrentPosition())) / 4;
             telemetry.addData("Robot Distance: ", DistanceRobot);
             telemetry.addData("Target Distance: ", slowDownDistance);
-
             telemetry.update();
-
         }
+        //Set the motor power to zero before ending the function
         zeroMotorPower();
     }
 
     public void DriveSideways(double Power, double distance, int slowDownDistance, double slowDownPower) throws InterruptedException {
-        zeroMotorPower();
+        zeroMotorPower(); // Set the motor power to zero before beginning the function
         DistanceRobot = 0;
+        //Set the initial distance of the encoders before moving the robot
         double initialPosition = (Math.abs(motorBackLeft.getCurrentPosition()) + Math.abs(motorBackRight.getCurrentPosition()) + Math.abs(motorFrontLeft.getCurrentPosition()) + Math.abs(motorFrontRight.getCurrentPosition())) / 4;
-
+        //While the distance traveled by the robot is less than the target distance...
         while ((distance>0? (DistanceRobot - initialPosition < distance): (initialPosition-DistanceRobot>distance)) && !isStopRequested()) {
+            //Set motor powers needed to move sideways
             motorFrontLeft.setPower(Power);
             motorFrontRight.setPower(Power);
             motorBackLeft.setPower(-Power);
             motorBackRight.setPower(-Power);
-
+            //Measure the current distance traveled using the average absolute value of the encoders
             DistanceRobot = (Math.abs(motorBackLeft.getCurrentPosition()) + Math.abs(motorBackRight.getCurrentPosition()) + Math.abs(motorFrontLeft.getCurrentPosition()) + Math.abs(motorFrontRight.getCurrentPosition())) / 4;
+            //Telemetry statements to debug code
             telemetry.addData("Robot Distance: ", DistanceRobot);
             telemetry.addData("Target Distance: ", distance);
             telemetry.update();
 
         }
         while ((slowDownDistance>0? (DistanceRobot - initialPosition < slowDownDistance): (initialPosition-DistanceRobot>slowDownDistance)) && !isStopRequested()) {
+            //Set a slower power when approaching the ideal distance
             motorFrontLeft.setPower(slowDownPower);
             motorFrontRight.setPower(slowDownPower);
             motorBackLeft.setPower(-slowDownPower);
             motorBackRight.setPower(-slowDownPower);
+            //Measure the current distance traveled by the encoders
             DistanceRobot = (Math.abs(motorBackLeft.getCurrentPosition()) + Math.abs(motorBackRight.getCurrentPosition()) + Math.abs(motorFrontLeft.getCurrentPosition()) + Math.abs(motorFrontRight.getCurrentPosition())) / 4;
+            //Add Telemetry statements for debugging
             telemetry.addData("Robot Distance: ", DistanceRobot);
             telemetry.addData("Target Distance: ", slowDownDistance);
             telemetry.update();
 
         }
-        zeroMotorPower();
+        zeroMotorPower(); //Set the power of the motors to zero before starting the next function
     }
-
-    public boolean statementFunction(double DistanceRobot, double initialPosition, double distance) {
-        if (distance < 0) {
-            return (initialPosition-DistanceRobot  > distance && !isStopRequested());
-        } else {
-            return (DistanceRobot - initialPosition < distance && !isStopRequested());
-        }
-    }
-
     public void TurnGyro(float degrees, float precision, double regurlarPower, float relativeToStart) {
         //Get the gyro reading from the IMU
-        float gyroReading = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZXY, AngleUnit.DEGREES).firstAngle;
+        float gyroReading = imu.getAngularOrientation().firstAngle;
         //Adding previous value of the gyro to the target to find end position
-        gyroReading = gyroReading < 0 ? 360 + gyroReading : gyroReading;
+        gyroReading = gyroReading < 0 ? (float)(2*Math.PI) + gyroReading : gyroReading;
         //Allows for a relative to start position
-        float totalDegrees = relativeToStart != 0 ? degrees + relativeToStart : degrees + gyroReading;
+        float totalDegrees = relativeToStart != 0 ? degrees/180*(float)(Math.PI) + relativeToStart : degrees/180*(float)(Math.PI) + gyroReading;
 
-        totalDegrees = totalDegrees % 360;
+        totalDegrees = totalDegrees % (float)(2*Math.PI);
         //Log information for Debugging
         Log.i("GyroDebug", "CurrentAngle: " + gyroReading + "   target: " + totalDegrees);
 
@@ -334,31 +336,29 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
         double right = 1;
         //If degrees is negative = clockwise
         if (totalDegrees - gyroReading < 0) {
-            left = -1;
-            right = -1;
+            left = -1;right = -1;
             //If degrees is Positive = anti-clockwise
         } else if (totalDegrees - gyroReading > 0) {
-            left = 1;
-            right = 1;
+            left = 1;right = 1;
         }
         //While the gyro is not greater or less than the target ...
         // Math.Abs(totalDegrees - gyroDegrees) < precision
         //while(gyroReading>totalDegees+precision || gyroReading<totalDegees-precision){
         int counter = 0;
-        while (Math.abs(totalDegrees - gyroReading) > precision && opModeIsActive()) {
+        while (Math.abs(totalDegrees - gyroReading) > precision*(float)(Math.PI)/180 && opModeIsActive()) {
             //turn the motors
             motorBackLeft.setPower(left * regurlarPower);
             motorFrontLeft.setPower(left * regurlarPower);
-            //motorBackRight.setPower(right * regurlarPower);
-            //motorFrontRight.setPower(right * regurlarPower);
+            motorBackRight.setPower(right * regurlarPower);
+            motorFrontRight.setPower(right * regurlarPower);
             telemetry.addData("Gyro angle", (totalDegrees - gyroReading));
             telemetry.update();
             //Update Gyro position
-            gyroReading = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZXY, AngleUnit.DEGREES).firstAngle;
-            gyroReading = gyroReading < 0 ? 360 + gyroReading : gyroReading;
+            gyroReading = imu.getAngularOrientation().firstAngle;
+            gyroReading = gyroReading < 0 ? (float)(2*Math.PI) + gyroReading : gyroReading;
             Log.i(counter++ + ". CurrentAngle", String.valueOf(gyroReading));
         }
-        zeroMotorPower();
+        zeroMotorPower();//Set power of motors to zero before starting function
         Log.i("Final Angle", String.valueOf(gyroReading));
     }
 
