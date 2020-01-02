@@ -23,10 +23,6 @@ public class SkystoneTeleOpLeftStick extends LinearOpMode {
     private CRServo linearslideRight;
     private CRServo linearslideLeft;
 
-
-
-
-
     //Declare Servos
     private Servo TerrenceTheServo;
     private Servo NerrenceTheServo;
