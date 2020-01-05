@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -20,7 +21,7 @@ public class SkystoneTeleOpLeftStick extends LinearOpMode {
     private DcMotor motorFrontLeft;
     private DcMotor motorBackRight;
     private DcMotor motorBackLeft;
-    private CRServo linearslideRight;
+    private AnalogInput linearslideEncoder;
     private CRServo linearslideLeft;
 
     //Declare Servos
@@ -40,6 +41,10 @@ public class SkystoneTeleOpLeftStick extends LinearOpMode {
     private static boolean NewLarm =false;
     private static boolean OldRarm =false;
     private static boolean NewRarm =false;
+    private static boolean OldDpadUp =false;
+    private static boolean NewDpadUp =false;
+    private static boolean OldDpadDown =false;
+    private static boolean NewDpadDown =false;
     private static double linearSlidePower = 50; //Power for linear slide motors
 
     @Override
@@ -56,7 +61,6 @@ public class SkystoneTeleOpLeftStick extends LinearOpMode {
         motorBackRight = hardwareMap.dcMotor.get("motorBackRight");
         motorBackLeft = hardwareMap.dcMotor.get("motorBackLeft");
         linearslideLeft = hardwareMap.crservo.get("linearslideLeft");
-        linearslideRight = hardwareMap.crservo.get("linearslideRight");
 
         //Value positions for servos
         final double armRetractedPosition = 0.0;
@@ -68,7 +72,7 @@ public class SkystoneTeleOpLeftStick extends LinearOpMode {
         motorFrontLeft.setDirection(DcMotor.Direction.FORWARD);
         motorBackRight.setDirection(DcMotor.Direction.FORWARD);
         motorBackLeft.setDirection(DcMotor.Direction.FORWARD);
-        
+        //linearslideEncoder = hardwareMap.analogInput.get("linearSlideEncoder");
 
 
         //Configure Servos
@@ -129,6 +133,8 @@ public class SkystoneTeleOpLeftStick extends LinearOpMode {
             }else {
                 linearslideLeft.setPower(0);
             }
+            //Log.d("DEBUGGER: ", "Linear Slide Encoder"+linearslideEncoder.getVoltage());
+
             //Terrence servo control
             NewTerrence=gamepad1.a;
             if(!OldTerrence&&NewTerrence){
@@ -154,6 +160,10 @@ public class SkystoneTeleOpLeftStick extends LinearOpMode {
                 }
             }
             OldRarm=NewRarm;
+            NewDpadDown = gamepad2.dpad_down;
+            NewDpadUp = gamepad2.dpad_up;
+            if(NewDpadUp && !OldDpadUp) {
+            }
 
             telemetry.update();
             Thread.sleep(100);

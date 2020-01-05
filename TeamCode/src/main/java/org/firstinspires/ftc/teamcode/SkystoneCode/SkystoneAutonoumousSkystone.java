@@ -1,18 +1,39 @@
 package org.firstinspires.ftc.teamcode.SkystoneCode;
 
-
+import java.io.StringWriter;
 import android.util.Log;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 
+import com.vuforia.ar.pl.SystemTools;
+import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
+import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
+import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
+import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
+import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
+import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
 
 @Autonomous(name= "AutonomousSkystoneRed")
 //@Disabled
@@ -26,6 +47,7 @@ public class SkystoneAutonoumousSkystone extends LinearOpMode {
     private DcMotor motorFrontLeft;
     private DcMotor motorBackRight;
     private DcMotor motorBackLeft;
+    private DigitalChannel linearSlideEncoder;
 
     //Declare Servos
     private Servo armServo;
@@ -41,6 +63,7 @@ public class SkystoneAutonoumousSkystone extends LinearOpMode {
     private double xLeftStick;
     private double yLeftStick;
     private double DistanceRobot;
+    private double translations;
 
     //Define Gyro
     BNO055IMU imu;
@@ -105,6 +128,7 @@ public class SkystoneAutonoumousSkystone extends LinearOpMode {
         motorFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        linearSlideEncoder = hardwareMap.digitalChannel.get("linearSlideEncoder");
         //Configure Servos
         //armServo = hardwareMap.servo.get("motorArm");
 
@@ -136,10 +160,11 @@ public class SkystoneAutonoumousSkystone extends LinearOpMode {
             telemetry.addData("status", "waiting for start command...");
             telemetry.update();
         }
-        //targetsSkyStone.activate();
+        targetsSkyStone.activate();
 
-        while (opModeIsActive()) {
-            while (!targetVisible&&opModeIsActive()) {
+        while (!isStopRequested()) {
+            double maximumTimeForVuforia =System.nanoTime()+Math.pow(10,10);
+            while (!targetVisible&&opModeIsActive()&&System.nanoTime()<maximumTimeForVuforia) {
                 targetVisible = false;
                 for (VuforiaTrackable trackable : allTrackables) {
                     if (((VuforiaTrackableDefaultListener)trackable.getListener()).isVisible()) {
@@ -154,15 +179,16 @@ public class SkystoneAutonoumousSkystone extends LinearOpMode {
                 if (targetVisible) {
                     VectorF translation = lastLocation.getTranslation();
                     telemetry.addData("Pos (in)", "{X, Y, Z} = %.1f, %.1f, %.1f",
-                            translation.get(0) / mmPerInch, translation.get(1) / mmPerInch, translation.get(2) / mmPerInch);
+                            translations / mmPerInch, translation.get(1) / mmPerInch, translation.get(2) / mmPerInch);
                     Orientation rotation = Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, DEGREES);
                     telemetry.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle);
+                    translations = translation.get(0);
                 } else { telemetry.addData("Visible Target", "none"); }
                 telemetry.update();
             }
-            int blockPositon = (translation.get(0)>0&&translation.get(0)<1) ? 1 :
-                    (translation.get(0)>1&&translation.get(0)<2) ? 2 : 3;
-
+            int blockPositon = (translations<1) ? 1 :
+                    (translations>1&&translations<2) ? 2 : 3;
+            Log.d("DEBUGGER", "Vuforia:Position"+translations);
             situationBlock(blockPositon);
             DriveInFWD(1,-440);
             DriveSideways(1, -1320,0,0);
@@ -319,39 +345,34 @@ public class SkystoneAutonoumousSkystone extends LinearOpMode {
         motorFrontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorBackLeft.setMode(DcMotor.RunMo{
-            LeftServoArm (1);
-            else {
-
-            }
-
-            de.RUN_USING_ENCODER);
-        telemetry.addData("Done: reseting encoders"null);
-        telemetry.update();,
+        motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        telemetry.addData("Done: reseting encoders",null);
+        telemetry.update();
     }
-    public void situationBlock(boolean x) {
-        if(x==1) {
+    public void situationBlock(int x) throws java.lang.InterruptedException {
+        if (x == 1) {
             DriveInFWD(1, 880);
             LeftServoArm.setPosition(1);
             RightServoArm.setPosition(1);
 
 
-        }else if (x==2) {
+        } else if (x == 2) {
             DriveSideways(1, 146, 0, 0);
             DriveInFWD(1, 880);
 
             LeftServoArm.setPosition(1);
             RightServoArm.setPosition(1);
-        }else{
+        } else {
             DriveSideways(1, 292, 0, 0);
             DriveInFWD(1, 880);
 
             LeftServoArm.setPosition(1);
             RightServoArm.setPosition(1);
 
+        }
     }
-    public void grabOrReleaseFoundation(boolean grab){
-        if(grab){
+    public void grabOrReleaseFoundation(boolean grab) {
+        if (grab) {
             TerrenceTheServo.setPosition(0);
             NerrenceTheServo.setPosition(1);
         } else {
@@ -361,22 +382,4 @@ public class SkystoneAutonoumousSkystone extends LinearOpMode {
         }
     }
 
-    DriveInFWD(1, 880);
-    Boolean(x);
-    DriveInFWD(1,-440);
-    DriveSideways(1, -1320,0,0);
-    LeftServoArm.setPosition(0);
-    RightServoArm.setPosition(0);
-    DriveSideways(1, 1760, 0,0);
-        DriveInFWD(1, 440);
-        LeftServoArm.setPosition(1);
-    RightServoArm.setPosition(1);
-        DriveInFWD(1,-440);
-        DriveSideways(1, -1320,0,0);
-        LeftServoArm.setPosition(0);
-        RightServoArm.setPosition(0);
-        DriveSideways(1, 220, 0,0);
-
-
-
-}
+    }
