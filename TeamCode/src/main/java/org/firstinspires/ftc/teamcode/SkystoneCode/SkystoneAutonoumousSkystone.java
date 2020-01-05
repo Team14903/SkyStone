@@ -29,6 +29,7 @@ public class SkystoneAutonoumousSkystone extends LinearOpMode {
 
     //Declare Servos
     private Servo armServo;
+    private Servo PullDownArmServo;
 
 
     //Declare Sensors
@@ -95,6 +96,7 @@ public class SkystoneAutonoumousSkystone extends LinearOpMode {
         NerrenceTheServo = hardwareMap.servo.get("NerrenceTheServo");
         LeftServoArm = hardwareMap.servo.get("Larm");
         RightServoArm = hardwareMap.servo.get("Rarm");
+        PullDownArmServo = hardwareMap.servo.get("PullDownArmServo")
 
         //Configure motors to Expansion Hub
         motorFrontRight = hardwareMap.dcMotor.get("motorFrontRight");
@@ -164,6 +166,7 @@ public class SkystoneAutonoumousSkystone extends LinearOpMode {
                     (translation.get(0)>1&&translation.get(0)<2) ? 2 : 3;
 
             situationBlock(blockPositon);
+            PullDownArmServo.setPosition(1);
             DriveInFWD(1,-440);
             DriveSideways(1, -1320,0,0);
             LeftServoArm.setPosition(0);
@@ -360,23 +363,4 @@ public class SkystoneAutonoumousSkystone extends LinearOpMode {
 
         }
     }
-
-    DriveInFWD(1, 880);
-    Boolean(x);
-    DriveInFWD(1,-440);
-    DriveSideways(1, -1320,0,0);
-    LeftServoArm.setPosition(0);
-    RightServoArm.setPosition(0);
-    DriveSideways(1, 1760, 0,0);
-        DriveInFWD(1, 440);
-        LeftServoArm.setPosition(1);
-    RightServoArm.setPosition(1);
-        DriveInFWD(1,-440);
-        DriveSideways(1, -1320,0,0);
-        LeftServoArm.setPosition(0);
-        RightServoArm.setPosition(0);
-        DriveSideways(1, 220, 0,0);
-
-
-
 }
