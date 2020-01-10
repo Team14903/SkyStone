@@ -117,9 +117,9 @@ public class SkystoneAutonoumousSkystone extends LinearOpMode {
         //latchingTouchSensorDown.setMode(DigitalChannel.Mode.INPUT);
         TerrenceTheServo = hardwareMap.servo.get("TerrenceTheServo");
         NerrenceTheServo = hardwareMap.servo.get("NerrenceTheServo");
-        LeftServoArm = hardwareMap.servo.get("Larm");
+        LeftServoArm = hardwareMap.servo.get("Larm");   
         RightServoArm = hardwareMap.servo.get("Rarm");
-        PullDownArmServo = hardwareMap.servo.get("PullDownArmServo")
+        //PullDownArmServo = hardwareMap.servo.get("PullDownArmServo");
 
         //Configure motors to Expansion Hub
         motorFrontRight = hardwareMap.dcMotor.get("motorFrontRight");
@@ -130,7 +130,6 @@ public class SkystoneAutonoumousSkystone extends LinearOpMode {
         motorFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        linearSlideEncoder = hardwareMap.digitalChannel.get("linearSlideEncoder");
         //Configure Servos
         //armServo = hardwareMap.servo.get("motorArm");
 
@@ -165,15 +164,16 @@ public class SkystoneAutonoumousSkystone extends LinearOpMode {
         targetsSkyStone.activate();
 
         while (!isStopRequested()) {
-            double maximumTimeForVuforia =System.nanoTime()+Math.pow(10,10);
-            while (!targetVisible&&opModeIsActive()&&System.nanoTime()<maximumTimeForVuforia) {
+            DriveInFWD(1,350);
+            double maximumTimeForVuforia = System.nanoTime() + Math.pow(10, 3);
+            while (!targetVisible && opModeIsActive() && System.nanoTime() < maximumTimeForVuforia) {
                 targetVisible = false;
                 for (VuforiaTrackable trackable : allTrackables) {
-                    if (((VuforiaTrackableDefaultListener)trackable.getListener()).isVisible()) {
+                    if (((VuforiaTrackableDefaultListener) trackable.getListener()).isVisible()) {
                         telemetry.addData("Visible Target", trackable.getName());
                         targetVisible = true;
-                        OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener)trackable.getListener()).getUpdatedRobotLocation();
-                        lastLocation =robotLocationTransform != null? robotLocationTransform:lastLocation;
+                        OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener) trackable.getListener()).getUpdatedRobotLocation();
+                        lastLocation = robotLocationTransform != null ? robotLocationTransform : lastLocation;
                         break;
                     }
                 }
@@ -185,31 +185,29 @@ public class SkystoneAutonoumousSkystone extends LinearOpMode {
                     Orientation rotation = Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, DEGREES);
                     telemetry.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle);
                     translations = translation.get(0);
-                } else { telemetry.addData("Visible Target", "none"); }
+                } else {
+                    telemetry.addData("Visible Target", "none");
+                }
                 telemetry.update();
             }
-            int blockPositon = (translations<1) ? 1 :
-                    (translations>1&&translations<2) ? 2 : 3;
-            Log.d("DEBUGGER", "Vuforia:Position"+translations);
+            int blockPositon = (translations < 1) ? 1 :
+                    (translations > 1 && translations < 2) ? 2 : 3;
+            Log.d("DEBUGGER", "Vuforia:Position" + translations);
             situationBlock(blockPositon);
             PullDownArmServo.setPosition(1);
-            DriveInFWD(1,-440);
-            DriveSideways(1, -1320,0,0);
+            DriveInFWD(1, -440);
+            DriveSideways(1, -1320, 0, 0);
             LeftServoArm.setPosition(0);
             RightServoArm.setPosition(0);
-            DriveSideways(1, 1760, 0,0);
+            DriveSideways(1, 1760, 0, 0);
             DriveInFWD(1, 440);
             LeftServoArm.setPosition(1);
             RightServoArm.setPosition(1);
-            DriveInFWD(1,-440);
-            DriveSideways(1, -1320,0,0);
+            DriveInFWD(1, -440);
+            DriveSideways(1, -1320, 0, 0);
             LeftServoArm.setPosition(0);
             RightServoArm.setPosition(0);
-            DriveSideways(1, 220, 0,0);
-
-
-
-
+            DriveSideways(1, 220, 0, 0);
 
 
             telemetry.update();
@@ -288,15 +286,16 @@ public class SkystoneAutonoumousSkystone extends LinearOpMode {
 
         zeroMotorPower(); //Set the power of the motors to zero before starting the next function
     }
+
     public void TurnGyro(float degrees, float precision, double regurlarPower, float relativeToStart) {
         //Get the gyro reading from the IMU
         float gyroReading = imu.getAngularOrientation().firstAngle;
         //Adding previous value of the gyro to the target to find end position
-        gyroReading = gyroReading < 0 ? (float)(2*Math.PI) + gyroReading : gyroReading;
+        gyroReading = gyroReading < 0 ? (float) (2 * Math.PI) + gyroReading : gyroReading;
         //Allows for a relative to start position
-        float totalDegrees = relativeToStart != 0 ? degrees/180*(float)(Math.PI) + relativeToStart : degrees/180*(float)(Math.PI) + gyroReading;
+        float totalDegrees = relativeToStart != 0 ? degrees / 180 * (float) (Math.PI) + relativeToStart : degrees / 180 * (float) (Math.PI) + gyroReading;
 
-        totalDegrees = totalDegrees % (float)(2*Math.PI);
+        totalDegrees = totalDegrees % (float) (2 * Math.PI);
         //Log information for Debugging
         Log.i("GyroDebug", "CurrentAngle: " + gyroReading + "   target: " + totalDegrees);
 
@@ -306,16 +305,18 @@ public class SkystoneAutonoumousSkystone extends LinearOpMode {
         double right = 1;
         //If degrees is negative = clockwise
         if (totalDegrees - gyroReading < 0) {
-            left = -1;right = -1;
+            left = -1;
+            right = -1;
             //If degrees is Positive = anti-clockwise
         } else if (totalDegrees - gyroReading > 0) {
-            left = 1;right = 1;
+            left = 1;
+            right = 1;
         }
         //While the gyro is not greater or less than the target ...
         // Math.Abs(totalDegrees - gyroDegrees) < precision
         //while(gyroReading>totalDegees+precision || gyroReading<totalDegees-precision){
         int counter = 0;
-        while (Math.abs(totalDegrees - gyroReading) > precision*(float)(Math.PI)/180 && opModeIsActive()) {
+        while (Math.abs(totalDegrees - gyroReading) > precision * (float) (Math.PI) / 180 && opModeIsActive()) {
             //turn the motors
             motorBackLeft.setPower(left * regurlarPower);
             motorFrontLeft.setPower(left * regurlarPower);
@@ -325,7 +326,7 @@ public class SkystoneAutonoumousSkystone extends LinearOpMode {
             telemetry.update();
             //Update Gyro position
             gyroReading = imu.getAngularOrientation().firstAngle;
-            gyroReading = gyroReading < 0 ? (float)(2*Math.PI) + gyroReading : gyroReading;
+            gyroReading = gyroReading < 0 ? (float) (2 * Math.PI) + gyroReading : gyroReading;
             Log.i(counter++ + ". CurrentAngle", String.valueOf(gyroReading));
         }
         zeroMotorPower();//Set power of motors to zero before starting function
@@ -338,8 +339,9 @@ public class SkystoneAutonoumousSkystone extends LinearOpMode {
         //motorBackLeft.setPower(0);
         //motorBackRight.setPower(0);
     }
-    public void resetPosition(){
-        telemetry.addData("Currently: reseting encoders",null);
+
+    public void resetPosition() {
+        telemetry.addData("Currently: reseting encoders", null);
         telemetry.update();
         motorBackLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motorBackRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -349,9 +351,10 @@ public class SkystoneAutonoumousSkystone extends LinearOpMode {
         motorFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        telemetry.addData("Done: reseting encoders",null);
+        telemetry.addData("Done: reseting encoders", null);
         telemetry.update();
     }
+
     public void situationBlock(int x) throws java.lang.InterruptedException {
         if (x == 1) {
             DriveInFWD(1, 880);
@@ -374,6 +377,7 @@ public class SkystoneAutonoumousSkystone extends LinearOpMode {
 
         }
     }
+
     public void grabOrReleaseFoundation(boolean grab) {
         if (grab) {
             TerrenceTheServo.setPosition(0);
@@ -384,9 +388,4 @@ public class SkystoneAutonoumousSkystone extends LinearOpMode {
 
         }
     }
-<<<<<<< HEAD
-
-    }
-=======
 }
->>>>>>> cc17dca3cf3bc1b4b29289d041685ae6eee398d6

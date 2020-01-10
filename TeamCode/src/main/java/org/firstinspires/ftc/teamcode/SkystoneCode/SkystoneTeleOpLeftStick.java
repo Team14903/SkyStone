@@ -29,6 +29,7 @@ public class SkystoneTeleOpLeftStick extends LinearOpMode {
     private Servo NerrenceTheServo;
     private Servo LeftServoArm;
     private Servo RightServoArm;
+    private Servo pullingArmServo;
 
     //Declare Sensors
     //DigitalChannel latchingTouchSensorDown;//Sensor to to test if motor has reached lower limit
@@ -41,6 +42,8 @@ public class SkystoneTeleOpLeftStick extends LinearOpMode {
     private static boolean NewLarm =false;
     private static boolean OldRarm =false;
     private static boolean NewRarm =false;
+    private static boolean OldPullingServoArm =false;
+    private static boolean NewPullingServoArm =false;
     private static boolean OldDpadUp =false;
     private static boolean NewDpadUp =false;
     private static boolean OldDpadDown =false;
@@ -80,7 +83,7 @@ public class SkystoneTeleOpLeftStick extends LinearOpMode {
         NerrenceTheServo = hardwareMap.servo.get("NerrenceTheServo");
         LeftServoArm = hardwareMap.servo.get("Larm");
         RightServoArm = hardwareMap.servo.get("Rarm");
-
+        pullingArmServo = hardwareMap.servo.get("pullingServo");
         waitForStart();
 
         //INSERT CODE HERE
@@ -160,6 +163,14 @@ public class SkystoneTeleOpLeftStick extends LinearOpMode {
                 }
             }
             OldRarm=NewRarm;
+            NewPullingServoArm = gamepad1.b;
+            if(!OldPullingServoArm&&NewPullingServoArm){
+                if (pullingArmServo.getPosition()==.2){
+                    pullingArmServo.setPosition(0);
+                } else {
+                    pullingArmServo.setPosition(.2);
+                }
+            }
             NewDpadDown = gamepad2.dpad_down;
             NewDpadUp = gamepad2.dpad_up;
             if(NewDpadUp && !OldDpadUp) {
