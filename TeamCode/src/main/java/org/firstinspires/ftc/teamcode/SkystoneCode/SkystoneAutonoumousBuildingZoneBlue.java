@@ -36,6 +36,8 @@ public class SkystoneAutonoumousBuildingZoneBlue extends LinearOpMode {
     private Servo NerrenceTheServo;
     private Servo LeftServoArm;
     private Servo RightServoArm;
+    private Servo pullingArmServo;
+
 
     //Variables
     private double xLeftStick;
@@ -95,6 +97,7 @@ public class SkystoneAutonoumousBuildingZoneBlue extends LinearOpMode {
         NerrenceTheServo = hardwareMap.servo.get("NerrenceTheServo");
         LeftServoArm = hardwareMap.servo.get("Larm");
         RightServoArm = hardwareMap.servo.get("Rarm");
+        pullingArmServo = hardwareMap.servo.get("pullingArmServo");
 
         //Configure motors to Expansion Hub
         motorFrontRight = hardwareMap.dcMotor.get("motorFrontRight");
@@ -179,7 +182,8 @@ public class SkystoneAutonoumousBuildingZoneBlue extends LinearOpMode {
             telemetry.update();
             requestOpModeStop();
 
-
+            pullingArmServo.setPosition(0);
+            DriveInFWD(-1,400);
         }
     }
 

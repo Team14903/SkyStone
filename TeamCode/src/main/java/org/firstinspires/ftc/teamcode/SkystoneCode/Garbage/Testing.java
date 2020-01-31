@@ -1,51 +1,23 @@
-package org.firstinspires.ftc.teamcode.SkystoneCode;
+package org.firstinspires.ftc.teamcode.SkystoneCode.Garbage;
 
 
-import android.hardware.SensorEvent;
-import android.os.Build;
 import android.util.Log;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-
-import org.firstinspires.ftc.robotcore.external.ClassFactory;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
-import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
-
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
-import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
-
-
 
 
 @Autonomous(name= "AutonomousRed")
 //@Disabled
-public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
+public class Testing extends LinearOpMode {
     private double version = 2.3;
 
     private String Picture;
@@ -55,17 +27,18 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
     private DcMotor motorFrontLeft;
     private DcMotor motorBackRight;
     private DcMotor motorBackLeft;
+    private DcMotor linearSlideLeft;
 
     //Declare Servos
     private Servo armServo;
-
-
-    //Declare Sensors
     private Servo TerrenceTheServo;
     private Servo NerrenceTheServo;
     private Servo LeftServoArm;
     private Servo RightServoArm;
     private Servo pullingArmServo;
+
+    //Declare Sensors
+    private ColorSensor SkystoneColorSensor;
 
     //Variables
     private double xLeftStick;
@@ -74,53 +47,12 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
 
     //Define Gyro
     BNO055IMU imu;
-    /*//Vuforia variables
-    public static final VuforiaLocalizer.CameraDirection CAMERA_CHOICE = BACK;
-    public static final boolean PHONE_IS_PORTRAIT = false;
-    public static final String VUFORIA_KEY =
-            "AecVx1T/////AAABmcI08yL6hk3Nt6hSJ1mD2XJhGX9s+cETNcXvwYRsviVOyFrvCxQW1uKq6eKCuXJcp6loA3K4kq5vdzjlG5oDest+XgLnl7uUO2EHXUsl63893eKJ8anaiFk1+ECVV8+Nx2UJWNLk1enRgDkMzhA38qnIfcw+D5ll48etLKc1aWkOS40ZHoIscDctrsSWxFI6O8fDMHF8M4OrqYUd1kHPOj+5hNA6C2+BKn72JY53ABrveqy2gYtyBTkBQsZbGU7tKnJb4xvNcqk2q1IINiKx/lkoPUuJWbtG7xMJta/DySf+xjcggD63vooQ6Lz9HYMNml+IhogXQQwgGwssPukwUg+snYX17rq4fHNPw26aLN8J";
-    public static final float mmPerInch = 25.4f;                    //Conversion factor
-    public static final float mmTargetHeight = (6) * mmPerInch;          // the height of the center of the target image above the floor
-    public static final float stoneZ = 2.00f * mmPerInch;                  //size of stone in z
-    public OpenGLMatrix lastLocation = null;
-    public VuforiaLocalizer vuforia = null;
-    public boolean targetVisible = false;
-    public float phoneXRotate = 0;
-    public float phoneYRotate = 0;
-    public float phoneZRotate = 90;*/
 
     public void runOpMode() throws InterruptedException {
-        /*//Vuforia initialization
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
-        parameters.vuforiaLicenseKey = VUFORIA_KEY;
-        parameters.cameraDirection = CAMERA_CHOICE;
-        vuforia = ClassFactory.getInstance().createVuforia(parameters);
-        VuforiaTrackables targetsSkyStone = this.vuforia.loadTrackablesFromAsset("Skystone");
-        VuforiaTrackable stoneTarget = targetsSkyStone.get(0);
-        stoneTarget.setName("Stone Target");
-        List<VuforiaTrackable> allTrackables = new ArrayList<VuforiaTrackable>();
-        allTrackables.addAll(targetsSkyStone);
-        stoneTarget.setLocation(OpenGLMatrix
-                .translation(0, 0, stoneZ)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, -90)));
-        phoneYRotate = CAMERA_CHOICE == BACK ? -90 : 90;
-        phoneXRotate = PHONE_IS_PORTRAIT ? 90 : phoneXRotate;
-        final float CAMERA_FORWARD_DISPLACEMENT = 4.0f * mmPerInch;   // eg: Camera is 4 Inches in front of robot center
-        final float CAMERA_VERTICAL_DISPLACEMENT = 8.0f * mmPerInch;   // eg: Camera is 8 Inches above ground
-        final float CAMERA_LEFT_DISPLACEMENT = 0;     // eg: Camera is ON the robot's center line
-        OpenGLMatrix robotFromCamera = OpenGLMatrix
-                .translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, YZX, DEGREES, phoneYRotate, phoneZRotate, phoneXRotate));
-        for (VuforiaTrackable trackable : allTrackables) {
-            ((VuforiaTrackableDefaultListener) trackable.getListener()).setPhoneInformation(robotFromCamera, parameters.cameraDirection);
-        }*/
 
         //Configure Sensors
-        //latchingTouchSensorDown = hardwareMap.get(DigitalChannel.class, "latchingTouchSensorDown");
-        //latchingTouchSensorUp = hardwareMap.get(DigitalChannel.class, "latchingTouchSensorUp");
-        //latchingTouchSensorUp.setMode(DigitalChannel.Mode.INPUT);
-        //latchingTouchSensorDown.setMode(DigitalChannel.Mode.INPUT);
+        SkystoneColorSensor = hardwareMap.get(ColorSensor.class,"colorSensor");
+
         TerrenceTheServo = hardwareMap.servo.get("TerrenceTheServo");
         NerrenceTheServo = hardwareMap.servo.get("NerrenceTheServo");
         LeftServoArm = hardwareMap.servo.get("Larm");
@@ -128,6 +60,7 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
         pullingArmServo = hardwareMap.servo.get("pullingArmServo");
 
         //Configure motors to Expansion Hub
+        linearSlideLeft = hardwareMap.dcMotor.get("linearSlideLeft");
         motorFrontRight = hardwareMap.dcMotor.get("motorFrontRight");
         motorFrontLeft = hardwareMap.dcMotor.get("motorFrontLeft");
         motorBackRight = hardwareMap.dcMotor.get("motorBackRight");
@@ -170,46 +103,8 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
         //targetsSkyStone.activate();
 
         while (opModeIsActive()) {
-            /*while (!targetVisible) {
-                targetVisible = false;
-                for (VuforiaTrackable trackable : allTrackables) {
-                    if (((VuforiaTrackableDefaultListener)trackable.getListener()).isVisible()) {
-                        telemetry.addData("Visible Target", trackable.getName());
-                        targetVisible = true;
-                        OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener)trackable.getListener()).getUpdatedRobotLocation();
-                        lastLocation =robotLocationTransform != null? robotLocationTransform:lastLocation;
-                        break;
-                    }
-                }
-
-                if (targetVisible) {
-                    VectorF translation = lastLocation.getTranslation();
-                    telemetry.addData("Pos (in)", "{X, Y, Z} = %.1f, %.1f, %.1f",
-                            translation.get(0) / mmPerInch, translation.get(1) / mmPerInch, translation.get(2) / mmPerInch);
-                    Orientation rotation = Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, DEGREES);
-                    telemetry.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle);
-                } else { telemetry.addData("Visible Target", "none"); }
-                telemetry.update();
-            }*/
-            grabOrReleaseFoundation(false);
-            Log.i("Debugger:", "Gyro Angle Before Moving:"+imu.getAngularOrientation());
-            telemetry.addData("Status: Update Moving toward foundation", null);telemetry.update();
-            DriveInFWD(.4, 880);
-            Thread.sleep(500);
-            Log.i("Debugger:", "Gyro Angle After Moving:"+imu.getAngularOrientation());
-            //TurnGyro(10,2,-.2,0);
-            grabOrReleaseFoundation(true);
-            Thread.sleep(500);
-
-            telemetry.addData("Status: Update Moving foundation", null);telemetry.update();
-            DriveInFWD(-.4, 880);
-            TurnGyro(270,1,-.5,0);
-            grabOrReleaseFoundation(false);
-            pullingArmServo.setPosition(0);
-            DriveInFWD(-1,400);
-
-
-
+            SkystoneColorSensor.enableLed(true);
+            telemetry.addData("Current Color Sensor: ","R:%r , B: %b , G: %g ",SkystoneColorSensor.red(),SkystoneColorSensor.blue(), SkystoneColorSensor.green());
             telemetry.update();
             requestOpModeStop();
 
@@ -264,7 +159,7 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
         zeroMotorPower();
     }
 
-    public void DriveSideways(double Power, double distance, int slowDownDistance, double slowDownPower) throws InterruptedException {
+    public void DriveSideways(double Power, double distance) throws InterruptedException {
         zeroMotorPower(); // Set the motor power to zero before beginning the function
         resetPosition();
         DistanceRobot = 0;
@@ -357,6 +252,15 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
         } else {
             TerrenceTheServo.setPosition(1);
             NerrenceTheServo.setPosition(0);
+        }
+    }
+    public void grabOrReleaseBlocks(boolean grab){
+        if(grab){
+            RightServoArm.setPosition(0);
+            LeftServoArm.setPosition(1);
+        } else {
+            RightServoArm.setPosition(1);
+            LeftServoArm.setPosition(0);
         }
     }
 }

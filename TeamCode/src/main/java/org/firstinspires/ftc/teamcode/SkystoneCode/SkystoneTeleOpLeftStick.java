@@ -83,7 +83,7 @@ public class SkystoneTeleOpLeftStick extends LinearOpMode {
         NerrenceTheServo = hardwareMap.servo.get("NerrenceTheServo");
         LeftServoArm = hardwareMap.servo.get("Larm");
         RightServoArm = hardwareMap.servo.get("Rarm");
-        pullingArmServo = hardwareMap.servo.get("pullingServo");
+        pullingArmServo = hardwareMap.servo.get("pullingArmServo");
         waitForStart();
 
         //INSERT CODE HERE
@@ -174,8 +174,14 @@ public class SkystoneTeleOpLeftStick extends LinearOpMode {
             NewDpadDown = gamepad2.dpad_down;
             NewDpadUp = gamepad2.dpad_up;
             if(NewDpadUp && !OldDpadUp) {
-            }
 
+                pullingArmServo.setPosition(pullingArmServo.getPosition()+.1);
+            }
+            if(NewDpadDown && !OldDpadDown) {
+
+                pullingArmServo.setPosition(pullingArmServo.getPosition()-.1);
+            }
+            telemetry.addData("pulling arm Servo position",pullingArmServo.getPosition());
             telemetry.update();
             Thread.sleep(100);
         }

@@ -27,7 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.SkystoneCode;
+package org.firstinspires.ftc.teamcode.SkystoneCode.Garbage;
 
 import android.util.Log;
 

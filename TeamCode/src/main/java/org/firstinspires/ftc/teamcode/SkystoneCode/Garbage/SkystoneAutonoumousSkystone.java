@@ -1,25 +1,21 @@
-package org.firstinspires.ftc.teamcode.SkystoneCode;
+package org.firstinspires.ftc.teamcode.SkystoneCode.Garbage;
 
-
-import android.hardware.SensorEvent;
-import android.os.Build;
+import java.io.StringWriter;
 import android.util.Log;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 
+import com.vuforia.ar.pl.SystemTools;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
@@ -30,7 +26,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,12 +35,9 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
 import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
 
-
-
-
-@Autonomous(name= "AutonomousRed")
-//@Disabled
-public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
+@Autonomous(name= "AutonomousSkystoneRed")
+@Disabled
+public class SkystoneAutonoumousSkystone extends LinearOpMode {
     private double version = 2.3;
 
     private String Picture;
@@ -55,9 +47,11 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
     private DcMotor motorFrontLeft;
     private DcMotor motorBackRight;
     private DcMotor motorBackLeft;
+    private DigitalChannel linearSlideEncoder;
 
     //Declare Servos
     private Servo armServo;
+    private Servo PullDownArmServo;
 
 
     //Declare Sensors
@@ -65,16 +59,16 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
     private Servo NerrenceTheServo;
     private Servo LeftServoArm;
     private Servo RightServoArm;
-    private Servo pullingArmServo;
 
     //Variables
     private double xLeftStick;
     private double yLeftStick;
     private double DistanceRobot;
+    private double translations;
 
     //Define Gyro
     BNO055IMU imu;
-    /*//Vuforia variables
+    //Vuforia variables
     public static final VuforiaLocalizer.CameraDirection CAMERA_CHOICE = BACK;
     public static final boolean PHONE_IS_PORTRAIT = false;
     public static final String VUFORIA_KEY =
@@ -87,10 +81,10 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
     public boolean targetVisible = false;
     public float phoneXRotate = 0;
     public float phoneYRotate = 0;
-    public float phoneZRotate = 90;*/
+    public float phoneZRotate = 90;
 
     public void runOpMode() throws InterruptedException {
-        /*//Vuforia initialization
+        //Vuforia initialization
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
         parameters.vuforiaLicenseKey = VUFORIA_KEY;
@@ -114,7 +108,7 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
                 .multiplied(Orientation.getRotationMatrix(EXTRINSIC, YZX, DEGREES, phoneYRotate, phoneZRotate, phoneXRotate));
         for (VuforiaTrackable trackable : allTrackables) {
             ((VuforiaTrackableDefaultListener) trackable.getListener()).setPhoneInformation(robotFromCamera, parameters.cameraDirection);
-        }*/
+        }
 
         //Configure Sensors
         //latchingTouchSensorDown = hardwareMap.get(DigitalChannel.class, "latchingTouchSensorDown");
@@ -123,9 +117,9 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
         //latchingTouchSensorDown.setMode(DigitalChannel.Mode.INPUT);
         TerrenceTheServo = hardwareMap.servo.get("TerrenceTheServo");
         NerrenceTheServo = hardwareMap.servo.get("NerrenceTheServo");
-        LeftServoArm = hardwareMap.servo.get("Larm");
+        LeftServoArm = hardwareMap.servo.get("Larm");   
         RightServoArm = hardwareMap.servo.get("Rarm");
-        pullingArmServo = hardwareMap.servo.get("pullingArmServo");
+        //PullDownArmServo = hardwareMap.servo.get("PullDownArmServo");
 
         //Configure motors to Expansion Hub
         motorFrontRight = hardwareMap.dcMotor.get("motorFrontRight");
@@ -167,17 +161,19 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
             telemetry.addData("status", "waiting for start command...");
             telemetry.update();
         }
-        //targetsSkyStone.activate();
+        targetsSkyStone.activate();
 
-        while (opModeIsActive()) {
-            /*while (!targetVisible) {
+        while (!isStopRequested()) {
+            DriveInFWD(1,350);
+            double maximumTimeForVuforia = System.nanoTime() + Math.pow(10, 3);
+            while (!targetVisible && opModeIsActive() && System.nanoTime() < maximumTimeForVuforia) {
                 targetVisible = false;
                 for (VuforiaTrackable trackable : allTrackables) {
-                    if (((VuforiaTrackableDefaultListener)trackable.getListener()).isVisible()) {
+                    if (((VuforiaTrackableDefaultListener) trackable.getListener()).isVisible()) {
                         telemetry.addData("Visible Target", trackable.getName());
                         targetVisible = true;
-                        OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener)trackable.getListener()).getUpdatedRobotLocation();
-                        lastLocation =robotLocationTransform != null? robotLocationTransform:lastLocation;
+                        OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener) trackable.getListener()).getUpdatedRobotLocation();
+                        lastLocation = robotLocationTransform != null ? robotLocationTransform : lastLocation;
                         break;
                     }
                 }
@@ -185,29 +181,33 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
                 if (targetVisible) {
                     VectorF translation = lastLocation.getTranslation();
                     telemetry.addData("Pos (in)", "{X, Y, Z} = %.1f, %.1f, %.1f",
-                            translation.get(0) / mmPerInch, translation.get(1) / mmPerInch, translation.get(2) / mmPerInch);
+                            translations / mmPerInch, translation.get(1) / mmPerInch, translation.get(2) / mmPerInch);
                     Orientation rotation = Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, DEGREES);
                     telemetry.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle);
-                } else { telemetry.addData("Visible Target", "none"); }
+                    translations = translation.get(0);
+                } else {
+                    telemetry.addData("Visible Target", "none");
+                }
                 telemetry.update();
-            }*/
-            grabOrReleaseFoundation(false);
-            Log.i("Debugger:", "Gyro Angle Before Moving:"+imu.getAngularOrientation());
-            telemetry.addData("Status: Update Moving toward foundation", null);telemetry.update();
-            DriveInFWD(.4, 880);
-            Thread.sleep(500);
-            Log.i("Debugger:", "Gyro Angle After Moving:"+imu.getAngularOrientation());
-            //TurnGyro(10,2,-.2,0);
-            grabOrReleaseFoundation(true);
-            Thread.sleep(500);
-
-            telemetry.addData("Status: Update Moving foundation", null);telemetry.update();
-            DriveInFWD(-.4, 880);
-            TurnGyro(270,1,-.5,0);
-            grabOrReleaseFoundation(false);
-            pullingArmServo.setPosition(0);
-            DriveInFWD(-1,400);
-
+            }
+            int blockPositon = (translations < 1) ? 1 :
+                    (translations > 1 && translations < 2) ? 2 : 3;
+            Log.d("DEBUGGER", "Vuforia:Position" + translations);
+            situationBlock(blockPositon);
+            PullDownArmServo.setPosition(1);
+            DriveInFWD(1, -440);
+            DriveSideways(1, -1320, 0, 0);
+            LeftServoArm.setPosition(0);
+            RightServoArm.setPosition(0);
+            DriveSideways(1, 1760, 0, 0);
+            DriveInFWD(1, 440);
+            LeftServoArm.setPosition(1);
+            RightServoArm.setPosition(1);
+            DriveInFWD(1, -440);
+            DriveSideways(1, -1320, 0, 0);
+            LeftServoArm.setPosition(0);
+            RightServoArm.setPosition(0);
+            DriveSideways(1, 220, 0, 0);
 
 
             telemetry.update();
@@ -286,15 +286,16 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
 
         zeroMotorPower(); //Set the power of the motors to zero before starting the next function
     }
+
     public void TurnGyro(float degrees, float precision, double regurlarPower, float relativeToStart) {
         //Get the gyro reading from the IMU
         float gyroReading = imu.getAngularOrientation().firstAngle;
         //Adding previous value of the gyro to the target to find end position
-        gyroReading = gyroReading < 0 ? (float)(2*Math.PI) + gyroReading : gyroReading;
+        gyroReading = gyroReading < 0 ? (float) (2 * Math.PI) + gyroReading : gyroReading;
         //Allows for a relative to start position
-        float totalDegrees = relativeToStart != 0 ? degrees/180*(float)(Math.PI) + relativeToStart : degrees/180*(float)(Math.PI) + gyroReading;
+        float totalDegrees = relativeToStart != 0 ? degrees / 180 * (float) (Math.PI) + relativeToStart : degrees / 180 * (float) (Math.PI) + gyroReading;
 
-        totalDegrees = totalDegrees % (float)(2*Math.PI);
+        totalDegrees = totalDegrees % (float) (2 * Math.PI);
         //Log information for Debugging
         Log.i("GyroDebug", "CurrentAngle: " + gyroReading + "   target: " + totalDegrees);
 
@@ -304,16 +305,18 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
         double right = 1;
         //If degrees is negative = clockwise
         if (totalDegrees - gyroReading < 0) {
-            left = -1;right = -1;
+            left = -1;
+            right = -1;
             //If degrees is Positive = anti-clockwise
         } else if (totalDegrees - gyroReading > 0) {
-            left = 1;right = 1;
+            left = 1;
+            right = 1;
         }
         //While the gyro is not greater or less than the target ...
         // Math.Abs(totalDegrees - gyroDegrees) < precision
         //while(gyroReading>totalDegees+precision || gyroReading<totalDegees-precision){
         int counter = 0;
-        while (Math.abs(totalDegrees - gyroReading) > precision*(float)(Math.PI)/180 && opModeIsActive()) {
+        while (Math.abs(totalDegrees - gyroReading) > precision * (float) (Math.PI) / 180 && opModeIsActive()) {
             //turn the motors
             motorBackLeft.setPower(left * regurlarPower);
             motorFrontLeft.setPower(left * regurlarPower);
@@ -323,7 +326,7 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
             telemetry.update();
             //Update Gyro position
             gyroReading = imu.getAngularOrientation().firstAngle;
-            gyroReading = gyroReading < 0 ? (float)(2*Math.PI) + gyroReading : gyroReading;
+            gyroReading = gyroReading < 0 ? (float) (2 * Math.PI) + gyroReading : gyroReading;
             Log.i(counter++ + ". CurrentAngle", String.valueOf(gyroReading));
         }
         zeroMotorPower();//Set power of motors to zero before starting function
@@ -336,8 +339,9 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
         //motorBackLeft.setPower(0);
         //motorBackRight.setPower(0);
     }
-    public void resetPosition(){
-        telemetry.addData("Currently: reseting encoders",null);
+
+    public void resetPosition() {
+        telemetry.addData("Currently: reseting encoders", null);
         telemetry.update();
         motorBackLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motorBackRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -347,16 +351,41 @@ public class SkystoneAutonoumousBuildingZone extends LinearOpMode {
         motorFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        telemetry.addData("Done: reseting encoders",null);
+        telemetry.addData("Done: reseting encoders", null);
         telemetry.update();
     }
-    public void grabOrReleaseFoundation(boolean grab){
-        if(grab){
+
+    public void situationBlock(int x) throws java.lang.InterruptedException {
+        if (x == 1) {
+            DriveInFWD(1, 880);
+            LeftServoArm.setPosition(1);
+            RightServoArm.setPosition(1);
+
+
+        } else if (x == 2) {
+            DriveSideways(1, 146, 0, 0);
+            DriveInFWD(1, 880);
+
+            LeftServoArm.setPosition(1);
+            RightServoArm.setPosition(1);
+        } else {
+            DriveSideways(1, 292, 0, 0);
+            DriveInFWD(1, 880);
+
+            LeftServoArm.setPosition(1);
+            RightServoArm.setPosition(1);
+
+        }
+    }
+
+    public void grabOrReleaseFoundation(boolean grab) {
+        if (grab) {
             TerrenceTheServo.setPosition(0);
             NerrenceTheServo.setPosition(1);
         } else {
             TerrenceTheServo.setPosition(1);
             NerrenceTheServo.setPosition(0);
+
         }
     }
 }
