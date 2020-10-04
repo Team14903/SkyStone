@@ -43,7 +43,8 @@ import java.util.Arrays;
         motorRight = hardwareMap.dcMotor.get("motorRight");
 
         //Set drive motors to opposite directions(is reversable if needed) and set latching motor to forward
-        //Update 10.1.18: Setting right motor direction to reverse to enable 1 joystick driving
+        //Update 10.1.18: Setting right motor direction to reverse to enable 1 joystick
+        // \\\\\driving
         motorLeft.setDirection(DcMotor.Direction.FORWARD);
         motorRight.setDirection(DcMotor.Direction.FORWARD);
 
@@ -53,7 +54,7 @@ import java.util.Arrays;
         boolean oldDownDPadValue = false;
 
         while(!gamepad1.dpad_right||!gamepad1.dpad_left){
-            boolean newUpDPadValue = gamepad1.dpad_up;
+            bool ean newUpDPadValue = gamepad1.dpad_up;
             boolean newDownDPadValue = gamepad1.dpad_down;
             if(newUpDPadValue&&!oldUpDPadValue&&!(gameMode==4)){
                 gameMode = gameMode+1;

@@ -87,12 +87,12 @@ public class SkystoneTeleOpLeftStick extends LinearOpMode {
         waitForStart();
 
         //INSERT CODE HERE
-        while(opModeIsActive()) {
-            //Spin Robot Left or Right
-            if((gamepad1.left_trigger+gamepad1.right_trigger>0.2)) {
-                motorFrontLeft.setPower(-gamepad1.left_trigger + gamepad1.right_trigger);
-                motorBackRight.setPower(-gamepad1.left_trigger + gamepad1.right_trigger);
-                motorFrontRight.setPower(-gamepad1.left_trigger + gamepad1.right_trigger);
+      r  while(opModeIsActive()) {
+                    //Spin Robot Left or Right
+                    if((gamepad1.left_trigger+gamepad1.right_trigger>0.2)) {
+                        motorFrontLeft.setPower(-gamepad1.left_trigger + gamepad1.right_trigger);
+                        motorBackRight.setPower(-gamepad1.left_trigger + gamepad1.right_trigger);
+                        motoFrontRight.setPower(-gamepad1.left_trigger + gamepad1.right_trigger);
                 motorBackLeft.setPower(-gamepad1.left_trigger + gamepad1.right_trigger);
             }else if(gamepad1.left_bumper&&((Math.abs(gamepad1.left_stick_x)+Math.abs(gamepad1.left_stick_y))>0)) {
                 motorFrontLeft.setPower((-gamepad1.left_stick_y+gamepad1.left_stick_x)/2);
