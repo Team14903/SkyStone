@@ -35,22 +35,20 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
 import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
 
-@Autonomous(name= "Test"
+@Autonomous(name= "Test", group="Linear Opmode")
 @Disabled
-public class SkystoneAutonoumousSkystone extends LinearOpMode {
-    private double version = 2.3;
+public class Test extends LinearOpMode {
 
-    private String Picture;
-    private DcMotor MotorTest;
-    motorFrontRight = hardwareMap.dcMotor.get("MotorTest");
-            motorFrontRight.setDirection(DcMotor.Direction.FORWARD);
-    r  while(opModeIsActive()) {
-        //Spin Robot Left or Right
-        if((gamepad1.left_trigger+gamepad1.right_trigger>0.2)) {
-       motoFrontRight.setPower(-gamepad1.left_trigger + gamepad1.right_trigger);
-        }else if(gamepad1.left_bumper&&((Math.abs(gamepad1.left_stick_x)+Math.abs(gamepad1.left_stick_y))>0)) {
-            motorFrontRight.setPower((gamepad1.left_stick_y+gamepad1.left_stick_x)/2);
-        } else if((Math.abs(gamepad1.left_stick_x)+Math.abs(gamepad1.left_stick_y)>0)) {
-            motorFrontRight.setPower(gamepad1.left_stick_y + gamepad1.left_stick_x);
-        } else {
-            motorFrontRight.setPower(0);
+    @Override
+    public void runOpMode() {
+        DcMotor motorTest_;
+        motorTest_=hardwareMap.dcMotor.get("motorTest");
+        waitForStart();
+motorTest_.setPower(0.75);
+        while (opModeIsActive()) {
+
+        }
+    }
+
+
+}
