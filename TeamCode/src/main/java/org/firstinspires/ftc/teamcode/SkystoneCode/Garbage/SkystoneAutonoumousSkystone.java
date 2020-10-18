@@ -35,14 +35,14 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
 import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
 
-@Autonomous(name= "AutonomousSkystoneRed")
+@Autonomous(name= "Test"
 @Disabled
 public class SkystoneAutonoumousSkystone extends LinearOpMode {
     private double version = 2.3;
 
     private String Picture;
-    private DcMotor motorFrontRight;
-    motorFrontRight = hardwareMap.dcMotor.get("motorFrontRight");
+    private DcMotor MotorTest;
+    motorFrontRight = hardwareMap.dcMotor.get("MotorTest");
             motorFrontRight.setDirection(DcMotor.Direction.FORWARD);
     r  while(opModeIsActive()) {
         //Spin Robot Left or Right
